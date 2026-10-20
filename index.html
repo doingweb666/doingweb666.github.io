@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>doing</title>
+<meta name="description" content="doing 的安全研究终端 —— 渗透测试、CTF、漏洞分析与代码笔记。">
+<meta name="author" content="doing">
+<meta name="theme-color" content="#04070f">
+<meta name="color-scheme" content="dark">
+<meta name="keywords" content="网络安全, 渗透测试, CTF, doing">
+<meta name="generator" content="Hexo">
+<link rel="canonical" href="https://doingweb666.github.io/index.html">
+<link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+<meta property="og:type" content="website">
+<meta property="og:title" content="doing">
+<meta property="og:description" content="doing 的安全研究终端 —— 渗透测试、CTF、漏洞分析与代码笔记。">
+<meta property="og:url" content="https://doingweb666.github.io/index.html">
+<meta property="og:site_name" content="doing">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="doing">
+<meta name="twitter:description" content="doing 的安全研究终端 —— 渗透测试、CTF、漏洞分析与代码笔记。">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script>document.documentElement.className += ' js';</script>
+
+</head>
+<body class="index-page">
+  <canvas id="matrix" class="matrix" aria-hidden="true"
+    data-enabled="true"
+    data-opacity="0.2"
+    data-font-size="16"
+    data-speed="1"></canvas>
+
+  <div class="crt" aria-hidden="true">
+    <div class="crt__scanlines"></div>
+    <div class="crt__vignette"></div>
+  </div>
+
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  
+<header class="site-header" id="top">
+  <div class="shell header__inner">
+    <a class="brand" href="/" aria-label="doing 首页">
+      <span class="brand__prompt" aria-hidden="true">root@doing:~#</span>
+      <span class="brand__name">doing</span>
+      <span class="brand__caret" aria-hidden="true"></span>
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="打开导航菜单">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      
+        <a class="site-nav__link is-active"
+           href="/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>home
+        </a>
+      
+        <a class="site-nav__link"
+           href="/archives/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>archives
+        </a>
+      
+        <a class="site-nav__link"
+           href="/tags/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>tags
+        </a>
+      
+    </nav>
+  </div>
+</header>
+
+
+  <main class="main" id="main">
+    
+
+<section class="hero">
+  <div class="hero__intro">
+    <p class="status">
+      <span class="status__dot" aria-hidden="true"></span>
+      <span class="status__on">system online</span>
+      <span class="status__sep" aria-hidden="true">//</span>
+      <span class="status__muted">encrypted channel established</span>
+    </p>
+
+    <h1 class="hero__title glitch" data-text="doing">doing</h1>
+
+    <p class="hero__role">
+      <span class="ps1" aria-hidden="true">root@doing:~$</span>
+      <span class="hero__role-text">Security Researcher / CTF Player<span class="cursor cursor--inline" aria-hidden="true"></span></span>
+    </p>
+
+    <p class="hero__tagline">记录渗透测试、CTF 与漏洞研究，在噪声中寻找信号。</p>
+
+    <div class="hero__actions">
+      <a class="btn btn--primary" href="#transmissions">
+        <span class="btn__bracket" aria-hidden="true">[</span> ls ./posts <span class="btn__bracket" aria-hidden="true">]</span>
+      </a>
+      <a class="btn btn--ghost" href="/archives/">
+        ls ./archives <span class="btn__arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+
+  <aside class="hero__term" aria-label="终端状态">
+    <div class="term">
+      <div class="term__bar">
+        <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="term__title">root@doing: ~</span>
+        <span class="term__tag">bash</span>
+      </div>
+      <div class="term__body">
+        <div class="term__boot">
+          
+          <p class="term__line term__line--boot" style="animation-delay: 0.15s"><span class="ok">[ OK ]</span> mounting /dev/ghost</p>
+          
+          <p class="term__line term__line--boot" style="animation-delay: 0.29s"><span class="ok">[ OK ]</span> loading kernel modules</p>
+          
+          <p class="term__line term__line--boot" style="animation-delay: 0.43s"><span class="ok">[ OK ]</span> encrypted tunnel established</p>
+          
+        </div>
+
+        <p class="term__line term__line--gap"><span class="ps1">root@doing:~$</span> <span class="typed" data-type="whoami"></span><span class="cursor" aria-hidden="true"></span></p>
+        <p class="term__out whoami-out" data-whoami>doing</p>
+
+        <p class="term__line term__line--cmd"><span class="ps1">root@doing:~$</span> cat ~/.profile</p>
+        <div class="term__profile">
+          
+          <p class="term__line term__line--dim">role   : Security Researcher</p>
+          
+          <p class="term__line term__line--dim">focus  : web / ctf / red team</p>
+          
+          <p class="term__line term__line--dim">status : online</p>
+          
+        </div>
+
+        <p class="term__line term__line--cmd term__line--last"><span class="ps1">root@doing:~$</span> <span class="cursor" aria-hidden="true"></span></p>
+
+        <div class="term__stats" aria-label="站点统计">
+          <div class="term__stat">
+            <span class="term__stat-num">01</span>
+            <span class="term__stat-label">posts</span>
+          </div>
+          <div class="term__stat">
+            <span class="term__stat-num">02</span>
+            <span class="term__stat-label">tags</span>
+          </div>
+          <div class="term__stat">
+            <span class="term__stat-num">∞</span>
+            <span class="term__stat-label">curiosity</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+</section>
+
+
+<section class="transmissions" id="transmissions">
+  <div class="section-head">
+    <div class="section-head__left">
+      <p class="eyebrow">// LATEST_TRANSMISSIONS</p>
+      <h2 class="section-title"><span class="section-title__prompt" aria-hidden="true">~/</span>ls -l ./posts</h2>
+    </div>
+    <span class="section-count">[ 01 FILES ]</span>
+  </div>
+
+  <div class="post-list">
+    
+    <article class="post-card">
+      <div class="post-card__rail" aria-hidden="true">
+        <span class="post-card__idx">01</span>
+        <span class="post-card__line"></span>
+      </div>
+      <div class="post-card__body">
+        <p class="post-card__cmd"><span class="dollar">$</span> cat hello-world.md</p>
+        <h3 class="post-card__title">
+          <a href="/2026/10/20/hello-world/">Hello World</a>
+        </h3>
+        <p class="post-card__excerpt">Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or y ...</p>
+        <div class="post-card__foot">
+          <time datetime="2026-10-20T12:00:00.000Z">2026-10-20</time>
+          <span class="meta-dot" aria-hidden="true">•</span>
+          <span>1 min read</span>
+          
+          <span class="post-card__tags">
+            
+            <a class="tag" href="/tags/hexo/">#hexo</a>
+            
+            <a class="tag" href="/tags/blog/">#blog</a>
+            
+          </span>
+          
+          <a class="post-card__more" href="/2026/10/20/hello-world/" aria-label="阅读 Hello World">open<span class="post-card__arrow" aria-hidden="true">▸</span></a>
+        </div>
+      </div>
+    </article>
+    
+  </div>
+
+  
+</section>
+
+  </main>
+
+  
+<footer class="site-footer">
+  <div class="shell">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <p class="footer__prompt"><span class="ps1" aria-hidden="true">root@doing:~$</span> echo $SIGNATURE</p>
+        <p class="footer__signature">There is no place like 127.0.0.1.</p>
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__label">// ELSEWHERE</p>
+        <a class="footer__link" href="/archives/">archives</a>
+        <a class="footer__link" href="/tags/">tags</a>
+        
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__label">// SYSTEM</p>
+        <p class="footer__meta"><span>stack</span> hexo + ejs</p>
+        <p class="footer__meta"><span>uptime</span> since 2026</p>
+        <button class="matrix-toggle" id="matrix-toggle" type="button" aria-pressed="true">MATRIX: ON</button>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <span>© 2026 <span class="footer__name">doing</span> — all packets encrypted</span>
+      <span class="footer__eof" aria-hidden="true">[ EOF ]</span>
+      <a class="footer__top-link" href="#top">cd ~ <span aria-hidden="true">↑</span></a>
+    </div>
+  </div>
+</footer>
+
+
+  <button class="to-top" id="to-top" type="button" aria-label="返回顶部" title="回到顶部">↑</button>
+
+  
+<script src="/js/matrix.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+</body>
+</html>
