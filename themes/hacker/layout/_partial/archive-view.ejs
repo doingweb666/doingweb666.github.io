@@ -1,0 +1,54 @@
+<%
+  var posts = page.posts ? page.posts.toArray() : [];
+  var term = page.tag ? '#' + page.tag : (page.category ? page.category : '');
+  var heading = term || ('~/archives' + (page.year ? '/' + page.year : ''));
+  var eyebrow = page.tag ? 'TAG_FILTER' : (page.category ? 'CATEGORY_FILTER' : 'ARCHIVE_INDEX');
+  var years = {};
+  posts.forEach(function(post) {
+    var y = post.date.year();
+    if (!years[y]) years[y] = [];
+    years[y].push(post);
+  });
+  var yearKeys = Object.keys(years).sort().reverse();
+%>
+<section class="archive">
+  <header class="page-head">
+    <p class="eyebrow">// <%= eyebrow %></p>
+    <h1 class="page-title glitch" data-text="<%= heading %>"><%= heading %></h1>
+    <p class="page-sub"><%= posts.length %> records indexed <span class="muted">// newest first</span></p>
+  </header>
+
+  <% yearKeys.forEach(function(y){ %>
+  <div class="archive-year">
+    <div class="archive-year__label">
+      <span class="archive-year__num"><%= y %></span>
+      <span class="archive-year__line" aria-hidden="true"></span>
+      <span class="archive-year__count"><%= years[y].length %></span>
+    </div>
+    <ul class="archive-list">
+      <% years[y].forEach(function(post){ %>
+      <li class="archive-item">
+        <time datetime="<%= post.date.toISOString() %>"><%= date(post.date, 'MM-DD') %></time>
+        <a class="archive-item__title" href="<%- url_for(post.path) %>"><%= post.title %></a>
+        <span class="archive-item__meta">
+          <% var firstTag = post.tags && post.tags.toArray()[0]; %>
+          <% if (firstTag) { %><a class="tag" href="<%- url_for(firstTag.path) %>">#<%= firstTag.name %></a><% } %>
+        </span>
+      </li>
+      <% }); %>
+    </ul>
+  </div>
+  <% }); %>
+
+  <% if (!posts.length) { %>
+  <p class="empty"><span class="ps1">$</span> find . -type f — <span class="muted">no records found.</span></p>
+  <% } %>
+
+  <% if (page.prev_link || page.next_link) { %>
+  <nav class="pagination" aria-label="分页">
+    <% if (page.prev_link) { %><a class="page-btn" href="<%- url_for(page.prev_link) %>"><span aria-hidden="true">←</span> PREV</a><% } else { %><span class="page-btn is-disabled"><span aria-hidden="true">←</span> PREV</span><% } %>
+    <span class="pagination__status">PAGE <b><%= page.current || 1 %></b></span>
+    <% if (page.next_link) { %><a class="page-btn" href="<%- url_for(page.next_link) %>">NEXT <span aria-hidden="true">→</span></a><% } else { %><span class="page-btn is-disabled">NEXT <span aria-hidden="true">→</span></span><% } %>
+  </nav>
+  <% } %>
+</section>

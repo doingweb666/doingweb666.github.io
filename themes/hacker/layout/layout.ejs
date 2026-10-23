@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="<%= config.language || 'zh-CN' %>">
+<head>
+  <%- partial('_partial/head') %>
+</head>
+<body class="<%= (page.layout || 'index') %>-page">
+  <canvas id="matrix" class="matrix" aria-hidden="true"
+    data-enabled="<%= theme.matrix && theme.matrix.enable !== false ? 'true' : 'false' %>"
+    data-opacity="<%= theme.matrix && theme.matrix.opacity || 0.15 %>"
+    data-font-size="<%= theme.matrix && theme.matrix.fontSize || 16 %>"
+    data-speed="<%= theme.matrix && theme.matrix.speed || 1 %>"></canvas>
+
+  <div class="crt" aria-hidden="true">
+    <div class="crt__scanlines"></div>
+    <div class="crt__vignette"></div>
+  </div>
+
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <%- partial('_partial/header') %>
+
+  <main class="main" id="main">
+    <%- body %>
+  </main>
+
+  <%- partial('_partial/footer') %>
+
+  <button class="to-top" id="to-top" type="button" aria-label="返回顶部" title="回到顶部">↑</button>
+
+  <%- partial('_partial/scripts') %>
+</body>
+</html>

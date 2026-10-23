@@ -1,0 +1,35 @@
+<%
+  var currentPath = page.path || '';
+  function navActive(itemPath) {
+    if (!itemPath) return false;
+    if (itemPath === '/') return currentPath === '' || currentPath === 'index.html';
+    var clean = itemPath.replace(/^\//, '');
+    return currentPath.indexOf(clean) === 0;
+  }
+  var promptUser = theme.identity.prompt_user || 'root';
+  var host = theme.identity.host || 'localhost';
+  var handle = theme.identity.handle || config.author || config.title;
+%>
+<header class="site-header" id="top">
+  <div class="shell header__inner">
+    <a class="brand" href="<%- url_for('/') %>" aria-label="<%= handle %> 首页">
+      <span class="brand__prompt" aria-hidden="true"><%= promptUser %>@<%= host %>:~#</span>
+      <span class="brand__name"><%= handle %></span>
+      <span class="brand__caret" aria-hidden="true"></span>
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="打开导航菜单">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      <% (theme.menu || []).forEach(function(item){ %>
+        <a class="site-nav__link<%= navActive(item.path) ? ' is-active' : '' %>"
+           href="<%= item.external ? item.path : url_for(item.path) %>"
+           <% if (item.external) { %>target="_blank" rel="noopener noreferrer"<% } %>>
+          <span class="site-nav__marker" aria-hidden="true">./</span><%= item.name %><% if (item.external) { %><span class="site-nav__ext" aria-hidden="true">↗</span><% } %>
+        </a>
+      <% }); %>
+    </nav>
+  </div>
+</header>

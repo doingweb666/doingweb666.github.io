@@ -1,0 +1,14 @@
+<article class="page">
+  <header class="page-head">
+    <p class="eyebrow">// PAGE_LOAD</p>
+    <h1 class="page-title glitch" data-text="<%= page.title %>"><%= page.title %></h1>
+    <% if (page.description) { %><p class="page-sub"><%= page.description %></p><% } %>
+  </header>
+  <div class="file">
+    <div class="file__bar">
+      <span class="file__name"><span class="file__path" aria-hidden="true">~/pages/</span><%= page.slug || page.title %>.md</span>
+      <span class="file__mode">READ-ONLY</span>
+    </div>
+    <div class="file__body prose"><%- page.content %></div>
+  </div>
+</article>

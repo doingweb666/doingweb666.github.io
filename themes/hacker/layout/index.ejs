@@ -1,0 +1,72 @@
+<%
+  function readTime(content) {
+    var text = strip_html(content || '').replace(/\s+/g, '');
+    return Math.max(1, Math.round(text.length / 350));
+  }
+  function makeExcerpt(post, limit) {
+    var firstParagraph = (post.content || '').match(/<p[^>]*>([\s\S]*?)<\/p>/i);
+    var source = post.description || (firstParagraph ? firstParagraph[1] : (post.content || ''));
+    var text = strip_html(source).replace(/\s+/g, ' ').trim();
+    return text.length > limit ? text.slice(0, limit).trim() + ' ...' : text;
+  }
+  var perPage = config.per_page || 10;
+  var totalPages = Math.ceil(site.posts.length / perPage) || 1;
+%>
+<%- partial('_partial/hero') %>
+
+<section class="transmissions" id="transmissions">
+  <div class="section-head">
+    <div class="section-head__left">
+      <p class="eyebrow">// LATEST_TRANSMISSIONS</p>
+      <h2 class="section-title"><span class="section-title__prompt" aria-hidden="true">~/</span>ls -l ./posts</h2>
+    </div>
+    <span class="section-count">[ <%= String(site.posts.length).padStart(2, '0') %> FILES ]</span>
+  </div>
+
+  <div class="post-list">
+    <% page.posts.each(function(post, i){ %>
+    <article class="post-card">
+      <div class="post-card__rail" aria-hidden="true">
+        <span class="post-card__idx"><%= String((page.current - 1) * perPage + i + 1).padStart(2, '0') %></span>
+        <span class="post-card__line"></span>
+      </div>
+      <div class="post-card__body">
+        <p class="post-card__cmd"><span class="dollar">$</span> cat <%= post.slug || post.title %>.md</p>
+        <h3 class="post-card__title">
+          <a href="<%- url_for(post.path) %>"><%= post.title %></a>
+        </h3>
+        <p class="post-card__excerpt"><%= makeExcerpt(post, 170) %></p>
+        <div class="post-card__foot">
+          <time datetime="<%= post.date.toISOString() %>"><%= date(post.date, 'YYYY-MM-DD') %></time>
+          <span class="meta-dot" aria-hidden="true">•</span>
+          <span><%= readTime(post.content) %> min read</span>
+          <% if (post.tags && post.tags.length) { %>
+          <span class="post-card__tags">
+            <% post.tags.each(function(tag){ %>
+            <a class="tag" href="<%- url_for(tag.path) %>">#<%= tag.name %></a>
+            <% }); %>
+          </span>
+          <% } %>
+          <a class="post-card__more" href="<%- url_for(post.path) %>" aria-label="阅读 <%= post.title %>">open<span class="post-card__arrow" aria-hidden="true">▸</span></a>
+        </div>
+      </div>
+    </article>
+    <% }); %>
+  </div>
+
+  <% if (totalPages > 1) { %>
+  <nav class="pagination" aria-label="分页">
+    <% if (page.prev_link) { %>
+    <a class="page-btn" href="<%- url_for(page.prev_link) %>"><span aria-hidden="true">←</span> PREV</a>
+    <% } else { %>
+    <span class="page-btn is-disabled"><span aria-hidden="true">←</span> PREV</span>
+    <% } %>
+    <span class="pagination__status">PAGE <b><%= page.current %></b> / <%= totalPages %></span>
+    <% if (page.next_link) { %>
+    <a class="page-btn" href="<%- url_for(page.next_link) %>">NEXT <span aria-hidden="true">→</span></a>
+    <% } else { %>
+    <span class="page-btn is-disabled">NEXT <span aria-hidden="true">→</span></span>
+    <% } %>
+  </nav>
+  <% } %>
+</section>

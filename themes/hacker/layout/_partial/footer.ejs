@@ -1,0 +1,38 @@
+<%
+  var identity = theme.identity || {};
+  var footer = theme.footer || {};
+  var handle = identity.handle || config.author || config.title;
+  var year = new Date().getFullYear();
+%>
+<footer class="site-footer">
+  <div class="shell">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <p class="footer__prompt"><span class="ps1" aria-hidden="true">root@<%= identity.host || 'localhost' %>:~$</span> echo $SIGNATURE</p>
+        <p class="footer__signature"><%= footer.text || 'There is no place like 127.0.0.1.' %></p>
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__label">// ELSEWHERE</p>
+        <a class="footer__link" href="<%- url_for('/archives/') %>">archives</a>
+        <a class="footer__link" href="<%- url_for('/tags/') %>">tags</a>
+        <% if (theme.hero && theme.hero.github) { %>
+        <a class="footer__link" href="<%= theme.hero.github %>" target="_blank" rel="noopener noreferrer">github <span aria-hidden="true">↗</span></a>
+        <% } %>
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__label">// SYSTEM</p>
+        <p class="footer__meta"><span>stack</span> hexo + ejs</p>
+        <p class="footer__meta"><span>uptime</span> since <%= footer.since || 2026 %></p>
+        <button class="matrix-toggle" id="matrix-toggle" type="button" aria-pressed="true">MATRIX: ON</button>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <span>© <%= year %> <span class="footer__name"><%= handle %></span> — all packets encrypted</span>
+      <span class="footer__eof" aria-hidden="true">[ EOF ]</span>
+      <a class="footer__top-link" href="#top">cd ~ <span aria-hidden="true">↑</span></a>
+    </div>
+  </div>
+</footer>

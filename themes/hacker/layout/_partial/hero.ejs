@@ -1,0 +1,84 @@
+<%
+  var identity = theme.identity || {};
+  var hero = theme.hero || {};
+  var terminal = theme.terminal || {};
+  var handle = identity.handle || config.author || config.title;
+  var role = identity.role || 'Security Researcher';
+  var promptUser = identity.prompt_user || 'root';
+  var host = identity.host || 'localhost';
+  var tagline = hero.tagline || config.description || '';
+  var postCount = site.posts.length;
+  var tagCount = site.tags.length;
+%>
+<section class="hero">
+  <div class="hero__intro">
+    <p class="status">
+      <span class="status__dot" aria-hidden="true"></span>
+      <span class="status__on">system online</span>
+      <span class="status__sep" aria-hidden="true">//</span>
+      <span class="status__muted">encrypted channel established</span>
+    </p>
+
+    <h1 class="hero__title glitch" data-text="<%= handle %>"><%= handle %></h1>
+
+    <p class="hero__role">
+      <span class="ps1" aria-hidden="true"><%= promptUser %>@<%= host %>:~$</span>
+      <span class="hero__role-text"><%= role %><span class="cursor cursor--inline" aria-hidden="true"></span></span>
+    </p>
+
+    <p class="hero__tagline"><%= tagline %></p>
+
+    <div class="hero__actions">
+      <a class="btn btn--primary" href="#transmissions">
+        <span class="btn__bracket" aria-hidden="true">[</span> ls ./posts <span class="btn__bracket" aria-hidden="true">]</span>
+      </a>
+      <a class="btn btn--ghost" href="<%- url_for('/archives/') %>">
+        ls ./archives <span class="btn__arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+
+  <aside class="hero__term" aria-label="终端状态">
+    <div class="term">
+      <div class="term__bar">
+        <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="term__title"><%= promptUser %>@<%= host %>: ~</span>
+        <span class="term__tag">bash</span>
+      </div>
+      <div class="term__body">
+        <div class="term__boot">
+          <% (terminal.boot || []).forEach(function(line, i){ %>
+          <p class="term__line term__line--boot" style="animation-delay: <%= (0.15 + i * 0.14).toFixed(2) %>s"><span class="ok">[ OK ]</span> <%= line %></p>
+          <% }); %>
+        </div>
+
+        <p class="term__line term__line--gap"><span class="ps1"><%= promptUser %>@<%= host %>:~$</span> <span class="typed" data-type="<%= terminal.command || 'whoami' %>"></span><span class="cursor" aria-hidden="true"></span></p>
+        <p class="term__out whoami-out" data-whoami><%= terminal.output || handle %></p>
+
+        <p class="term__line term__line--cmd"><span class="ps1"><%= promptUser %>@<%= host %>:~$</span> cat ~/.profile</p>
+        <div class="term__profile">
+          <% (terminal.profile || []).forEach(function(line){ %>
+          <p class="term__line term__line--dim"><%= line %></p>
+          <% }); %>
+        </div>
+
+        <p class="term__line term__line--cmd term__line--last"><span class="ps1"><%= promptUser %>@<%= host %>:~$</span> <span class="cursor" aria-hidden="true"></span></p>
+
+        <div class="term__stats" aria-label="站点统计">
+          <div class="term__stat">
+            <span class="term__stat-num"><%= String(postCount).padStart(2, '0') %></span>
+            <span class="term__stat-label">posts</span>
+          </div>
+          <div class="term__stat">
+            <span class="term__stat-num"><%= String(tagCount).padStart(2, '0') %></span>
+            <span class="term__stat-label">tags</span>
+          </div>
+          <div class="term__stat">
+            <span class="term__stat-num">∞</span>
+            <span class="term__stat-label">curiosity</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+</section>

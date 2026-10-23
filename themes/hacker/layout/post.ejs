@@ -1,0 +1,98 @@
+<%
+  var identity = theme.identity || {};
+  var plain = strip_html(page.content || '').replace(/\s+/g, '');
+  var readTime = Math.max(1, Math.round(plain.length / 350));
+  var tocHtml = '';
+  if (typeof toc === 'function' && page.content) {
+    try {
+      tocHtml = toc(page.content, { list_number: false, class: 'toc-list' });
+    } catch (e) {
+      tocHtml = '';
+    }
+  }
+%>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<article class="post">
+  <header class="post__head">
+    <nav class="crumbs" aria-label="面包屑">
+      <a href="<%- url_for('/') %>">~</a>
+      <span class="crumbs__sep" aria-hidden="true">/</span>
+      <a href="<%- url_for('/archives/') %>">posts</a>
+      <span class="crumbs__sep" aria-hidden="true">/</span>
+      <span class="crumbs__here"><%= page.slug || page.title %></span>
+    </nav>
+
+    <h1 class="post__title glitch" data-text="<%= page.title %>"><%= page.title %></h1>
+
+    <div class="post__meta">
+      <span class="post__meta-item"><span class="post__meta-key">date</span> <time datetime="<%= page.date.toISOString() %>"><%= date(page.date, 'YYYY-MM-DD') %></time></span>
+      <span class="meta-dot" aria-hidden="true">•</span>
+      <span class="post__meta-item"><span class="post__meta-key">read</span> <%= readTime %> min</span>
+      <% if (page.categories && page.categories.length) { %>
+      <span class="meta-dot" aria-hidden="true">•</span>
+      <span class="post__meta-item"><span class="post__meta-key">dir</span> <% page.categories.each(function(cat, i){ %><% if (i > 0) { %>, <% } %><a href="<%- url_for(cat.path) %>"><%= cat.name %></a><% }); %></span>
+      <% } %>
+      <% if (page.tags && page.tags.length) { %>
+      <span class="post__meta-tags">
+        <% page.tags.each(function(tag){ %>
+        <a class="tag" href="<%- url_for(tag.path) %>">#<%= tag.name %></a>
+        <% }); %>
+      </span>
+      <% } %>
+    </div>
+  </header>
+
+  <div class="post__layout<%= tocHtml ? ' has-toc' : '' %>">
+    <div class="file">
+      <div class="file__bar">
+        <span class="file__name"><span class="file__path" aria-hidden="true">~/posts/</span><%= page.slug || page.title %>.md</span>
+        <span class="file__mode" title="只读文件">READ-ONLY</span>
+      </div>
+      <div class="file__body prose" id="post-content">
+        <%- page.content %>
+      </div>
+    </div>
+
+    <% if (tocHtml) { %>
+    <aside class="toc" aria-label="文章目录">
+      <p class="toc__title">// INDEX</p>
+      <nav class="toc__nav">
+        <%- tocHtml %>
+      </nav>
+    </aside>
+    <% } %>
+  </div>
+
+  <footer class="post__foot">
+    <% if (page.tags && page.tags.length) { %>
+    <div class="post__tags">
+      <span class="post__tags-label" aria-hidden="true">tags:</span>
+      <% page.tags.each(function(tag){ %>
+      <a class="tag" href="<%- url_for(tag.path) %>">#<%= tag.name %></a>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <% if (page.next || page.prev) { %>
+    <nav class="post-nav" aria-label="上一篇 / 下一篇">
+      <% if (page.next) { %>
+      <a class="post-nav__item post-nav__item--prev" href="<%- url_for(page.next.path) %>">
+        <span class="post-nav__label"><span aria-hidden="true">←</span> PREV</span>
+        <span class="post-nav__title"><%= page.next.title %></span>
+      </a>
+      <% } else { %>
+      <span class="post-nav__item is-empty"><span class="post-nav__label">// EOF_PREV</span></span>
+      <% } %>
+      <% if (page.prev) { %>
+      <a class="post-nav__item post-nav__item--next" href="<%- url_for(page.prev.path) %>">
+        <span class="post-nav__label">NEXT <span aria-hidden="true">→</span></span>
+        <span class="post-nav__title"><%= page.prev.title %></span>
+      </a>
+      <% } else { %>
+      <span class="post-nav__item is-empty post-nav__item--next"><span class="post-nav__label">// EOF_NEXT</span></span>
+      <% } %>
+    </nav>
+    <% } %>
+  </footer>
+</article>

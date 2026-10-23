@@ -1,0 +1,52 @@
+# ============================================================
+#  HACKER // terminal theme for Hexo
+#  所有文案、菜单、数字都可以在这里改，不需要动模板
+# ============================================================
+
+# 顶部导航（按顺序渲染；external: true 会在新窗口打开）
+menu:
+  - name: home
+    path: /
+  - name: archives
+    path: /archives/
+  - name: tags
+    path: /tags/
+
+# 身份信息（首页大标题、终端提示符）
+identity:
+  handle: doing
+  role: Security Researcher / CTF Player
+  prompt_user: root
+  host: doing
+
+# 首页
+hero:
+  tagline: 记录渗透测试、CTF 与漏洞研究，在噪声中寻找信号。
+
+# 首页右侧终端窗口
+terminal:
+  boot:
+    - mounting /dev/ghost
+    - loading kernel modules
+    - encrypted tunnel established
+  command: whoami
+  output: doing
+  profile:
+    - "role   : Security Researcher"
+    - "focus  : web / ctf / red team"
+    - "status : online"
+
+# 背景字符雨
+matrix:
+  enable: true
+  opacity: 0.2
+  fontSize: 16
+  speed: 1
+
+# 页脚
+footer:
+  text: There is no place like 127.0.0.1.
+  since: 2026
+
+# 站点图标（放在主题 source/img/ 下）
+favicon: /img/favicon.svg

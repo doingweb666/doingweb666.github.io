@@ -1,0 +1,29 @@
+<%
+  var identity = theme.identity || {};
+  var promptUser = identity.prompt_user || 'root';
+  var host = identity.host || 'doing';
+%>
+<section class="error-page">
+  <p class="eyebrow">// FATAL_ROUTE</p>
+  <h1 class="error-code glitch" data-text="404">404</h1>
+  <p class="error-title">SIGNAL LOST</p>
+  <p class="error-desc">你访问的路径不在这个文件系统里 ——<br>它可能被删除、重命名，或者从未存在。</p>
+
+  <div class="term term--error">
+    <div class="term__bar">
+      <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="term__title"><%= promptUser %>@<%= host %>: /var/log/404</span>
+      <span class="term__tag">bash</span>
+    </div>
+    <div class="term__body">
+      <p class="term__line"><span class="ps1"><%= promptUser %>@<%= host %>:~$</span> cd <span class="error-path"><%= page.path || '/404.html' %></span></p>
+      <p class="term__line error-out">bash: cd: no such file or directory</p>
+      <p class="term__line term__line--gap"><span class="ps1"><%= promptUser %>@<%= host %>:~$</span> <span class="cursor" aria-hidden="true"></span></p>
+    </div>
+  </div>
+
+  <div class="error-actions">
+    <a class="btn btn--primary" href="<%- url_for('/') %>">cd ~</a>
+    <a class="btn btn--ghost" href="<%- url_for('/archives/') %>">ls ./archives</a>
+  </div>
+</section>
