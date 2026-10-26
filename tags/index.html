@@ -85,11 +85,26 @@
   <header class="page-head">
     <p class="eyebrow">// TAG_DATABASE</p>
     <h1 class="page-title glitch" data-text="./tags">./tags</h1>
-    <p class="page-sub">0 tags indexed <span class="muted">// select a tag to filter transmissions</span></p>
+    <p class="page-sub">3 tags indexed <span class="muted">// select a tag to filter transmissions</span></p>
   </header>
 
   
-  <p class="empty"><span class="ps1">$</span> grep -r "#" ./posts — <span class="muted">no tags found.</span></p>
+  <p class="tag-note"><span class="ps1" aria-hidden="true">$</span> find ./posts -type f | xargs grep -h "tags:" | sort | uniq -c</p>
+  <div class="tag-cloud">
+    
+    <a class="tag-cloud__item" href="/tags/%E7%BD%91%E7%BB%9C%E7%A9%BA%E9%97%B4%E6%B5%8B%E7%BB%98/">
+      <span class="tag-cloud__hash" aria-hidden="true">#</span><span class="tag-cloud__name">网络空间测绘</span><span class="tag-cloud__count">1</span>
+    </a>
+    
+    <a class="tag-cloud__item" href="/tags/%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86/">
+      <span class="tag-cloud__hash" aria-hidden="true">#</span><span class="tag-cloud__name">信息收集</span><span class="tag-cloud__count">1</span>
+    </a>
+    
+    <a class="tag-cloud__item" href="/tags/FOFA/">
+      <span class="tag-cloud__hash" aria-hidden="true">#</span><span class="tag-cloud__name">FOFA</span><span class="tag-cloud__count">1</span>
+    </a>
+    
+  </div>
   
 </section>
 

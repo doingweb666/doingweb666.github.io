@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>【课后作业】FOFA-强大的网络空间资产搜索引擎 // doing</title>
+<meta name="description" content="从资产检索、指纹识别到漏洞影响面分析，整理 FOFA 的核心能力、常用语法与合规边界。">
+<meta name="author" content="doing">
+<meta name="theme-color" content="#04070f">
+<meta name="color-scheme" content="dark">
+<meta name="keywords" content="网络安全, 渗透测试, CTF, doing">
+<meta name="generator" content="Hexo">
+<link rel="canonical" href="https://doingweb666.github.io/2026/10/26/fofa/">
+<link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【课后作业】FOFA-强大的网络空间资产搜索引擎 // doing">
+<meta property="og:description" content="从资产检索、指纹识别到漏洞影响面分析，整理 FOFA 的核心能力、常用语法与合规边界。">
+<meta property="og:url" content="https://doingweb666.github.io/2026/10/26/fofa/">
+<meta property="og:site_name" content="doing">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【课后作业】FOFA-强大的网络空间资产搜索引擎 // doing">
+<meta name="twitter:description" content="从资产检索、指纹识别到漏洞影响面分析，整理 FOFA 的核心能力、常用语法与合规边界。">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script>document.documentElement.className += ' js';</script>
+
+</head>
+<body class="post-page">
+  <canvas id="matrix" class="matrix" aria-hidden="true"
+    data-enabled="true"
+    data-opacity="0.2"
+    data-font-size="16"
+    data-speed="1"></canvas>
+
+  <div class="crt" aria-hidden="true">
+    <div class="crt__scanlines"></div>
+    <div class="crt__vignette"></div>
+  </div>
+
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  
+<header class="site-header" id="top">
+  <div class="shell header__inner">
+    <a class="brand" href="/" aria-label="doing 首页">
+      <span class="brand__prompt" aria-hidden="true">root@doing:~#</span>
+      <span class="brand__name">doing</span>
+      <span class="brand__caret" aria-hidden="true"></span>
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="打开导航菜单">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      
+        <a class="site-nav__link"
+           href="/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>home
+        </a>
+      
+        <a class="site-nav__link"
+           href="/archives/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>archives
+        </a>
+      
+        <a class="site-nav__link"
+           href="/tags/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>tags
+        </a>
+      
+    </nav>
+  </div>
+</header>
+
+
+  <main class="main" id="main">
+    
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<article class="post">
+  <header class="post__head">
+    <nav class="crumbs" aria-label="面包屑">
+      <a href="/">~</a>
+      <span class="crumbs__sep" aria-hidden="true">/</span>
+      <a href="/archives/">posts</a>
+      <span class="crumbs__sep" aria-hidden="true">/</span>
+      <span class="crumbs__here">fofa</span>
+    </nav>
+
+    <h1 class="post__title glitch" data-text="【课后作业】FOFA-强大的网络空间资产搜索引擎">【课后作业】FOFA-强大的网络空间资产搜索引擎</h1>
+
+    <div class="post__meta">
+      <span class="post__meta-item"><span class="post__meta-key">date</span> <time datetime="2026-10-26T12:00:00.000Z">2026-10-26</time></span>
+      <span class="meta-dot" aria-hidden="true">•</span>
+      <span class="post__meta-item"><span class="post__meta-key">read</span> 4 min</span>
+      
+      <span class="meta-dot" aria-hidden="true">•</span>
+      <span class="post__meta-item"><span class="post__meta-key">dir</span> <a href="/categories/%E5%AE%89%E5%85%A8%E5%B7%A5%E5%85%B7/">安全工具</a></span>
+      
+      
+      <span class="post__meta-tags">
+        
+        <a class="tag" href="/tags/FOFA/">#FOFA</a>
+        
+        <a class="tag" href="/tags/%E7%BD%91%E7%BB%9C%E7%A9%BA%E9%97%B4%E6%B5%8B%E7%BB%98/">#网络空间测绘</a>
+        
+        <a class="tag" href="/tags/%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86/">#信息收集</a>
+        
+      </span>
+      
+    </div>
+  </header>
+
+  <div class="post__layout has-toc">
+    <div class="file">
+      <div class="file__bar">
+        <span class="file__name"><span class="file__path" aria-hidden="true">~/posts/</span>fofa.md</span>
+        <span class="file__mode" title="只读文件">READ-ONLY</span>
+      </div>
+      <div class="file__body prose" id="post-content">
+        <p>与普通搜索引擎索引网页内容不同，FOFA 专注于索引网络设备与服务本身。它通过主动或被动方式，持续探测全球公网上的开放服务，采集 IP、域名、主机、端口、协议、软硬件组件、物联网（IoT）设备等信息，并建立指纹规则库进行归类分析。因此，你可以用它来查找特定版本的服务器、某类品牌的摄像头，或是某个组织暴露在外的内部系统。</p>
+<h2 id="⚙️-主要功能与能力"><a href="#⚙️-主要功能与能力" class="headerlink" title="⚙️ 主要功能与能力"></a>⚙️ 主要功能与能力</h2><p>FOFA 的能力不止于简单的信息罗列，它提供了一套围绕资产发现与分析的工具体系。</p>
+<ul>
+<li><strong>多维资产检索</strong>：支持通过 IP、网段、域名、主机名、端口、协议、地理位置、证书、网页标题、正文内容等多种维度进行精确或模糊搜索。</li>
+<li><strong>指纹识别与资产聚类</strong>：内置庞大的指纹规则库，能识别设备类型、操作系统、应用组件等。其 favicon 图标检索和 FID 资产聚类能力较为突出，便于批量定位使用相同图标或特征的同源资产。</li>
+<li><strong>漏洞影响面分析</strong>：可快速检索全网范围内使用了某个特定组件（如某个存在 CVE 漏洞的中间件版本）的资产数量与分布，用于评估漏洞的实际影响范围。</li>
+<li><strong>数据统计与可视化</strong>：能对搜索结果进行统计分析，例如展示资产的全球地理分布、使用量排名前列的产品或服务等。</li>
+<li><strong>API 与集成</strong>：提供 API 接口，支持 Python、Java、Go 等语言调用，便于将 FOFA 的资产数据接入到 SIEM（安全信息与事件管理）、SOAR（安全编排自动化与响应）等安全运营平台中，实现自动化。</li>
+</ul>
+<h2 id="🛠️-主要应用场景"><a href="#🛠️-主要应用场景" class="headerlink" title="🛠️ 主要应用场景"></a>🛠️ 主要应用场景</h2><ul>
+<li><strong>攻击面管理与资产梳理</strong>：帮助企业盘点自身在公网上的暴露资产，发现未知的“影子资产”或遗留系统，收敛暴露面。</li>
+<li><strong>漏洞挖掘与影响研判</strong>：在授权前提下，安全研究人员通过特定语法定位可能存在漏洞的目标，或统计某个高危漏洞在全网的潜在影响规模。</li>
+<li><strong>威胁情报与安全监测</strong>：用于追踪特定组织或 APT（高级持续性威胁）团伙的活跃资产（IOC），或监控自身资产是否出现异常暴露。</li>
+</ul>
+<h2 id="📝-基本用法与示例"><a href="#📝-基本用法与示例" class="headerlink" title="📝 基本用法与示例"></a>📝 基本用法与示例</h2><p>FOFA 的核心在于其搜索语法，基本格式为 <code>字段=&quot;值&quot;</code>，并可通过逻辑运算符（<code>&amp;&amp;</code> 与、<code>||</code> 或、<code>!=</code> 非）进行组合。一些常见的查询示例如下：</p>
+<ul>
+<li><code>title=&quot;后台管理&quot;</code>：搜索网页标题中包含“后台管理”的资产。</li>
+<li><code>body=&quot;Apache/2.4.41&quot;</code>：搜索正文中包含特定 Apache 版本信息的资产。</li>
+<li><code>domain=&quot;example.com&quot;</code>：搜索与特定根域名相关的资产。</li>
+<li><code>ip=&quot;192.168.1.0/24&quot;</code>：搜索指定 IP 网段内的资产。</li>
+<li><code>port=&quot;3389&quot;</code>：查找开放了 3389 端口（远程桌面）的资产。</li>
+<li><code>app=&quot;海康威视-视频监控&quot;</code>：通过应用指纹查找特定品牌的设备。</li>
+<li><code>cert=&quot;example.com&quot; &amp;&amp; country=&quot;CN&quot;</code>：组合查询，查找证书包含特定内容且位于中国的资产。</li>
+</ul>
+<h2 id="📌-补充说明"><a href="#📌-补充说明" class="headerlink" title="📌 补充说明"></a>📌 补充说明</h2><ul>
+<li><strong>开发商</strong>：由北京华顺信安（原白帽汇）推出，是国内主流的网络空间测绘平台之一。</li>
+<li><strong>版本与限制</strong>：提供免费个人版（功能和结果条数有限制）、付费会员版及企业版，并支持私有化部署以满足数据不出内网的高保密需求。</li>
+<li><strong>合规使用</strong>：FOFA 本身采集的是公网公开数据，但使用者不得利用其查询结果实施未授权的访问或攻击，所有操作需遵守相关法律法规。</li>
+</ul>
+<p>FOFA 本质上是一个强大的资产发现与信息收集工具，其价值在于将公开的网络空间资产变得可检索、可分析，从而服务于安全防御、研究和管理决策。</p>
+<h2 id="查询子域名示例"><a href="#查询子域名示例" class="headerlink" title="查询子域名示例"></a>查询子域名示例</h2><p>通过 <code>domain</code> 指定根域名。</p>
+<p><img src="/images/c0ce8858f0c97a632685304408eb9d27.png" alt="FOFA 按域名查询"></p>
+<p>查到了一些子域名，其中有桂电的就业信息网。</p>
+<p><img src="/images/5ec7031d5b1474e4a4fdab636bf4812f.png" alt="子域名查询结果"></p>
+<p><img src="/images/afaf1a5b2e3fc2ebd23a498b1fb3d06f.png" alt="子域名查询结果"></p>
+
+      </div>
+    </div>
+
+    
+    <aside class="toc" aria-label="文章目录">
+      <p class="toc__title">// INDEX</p>
+      <nav class="toc__nav">
+        <ol class="toc-list"><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E2%9A%99%EF%B8%8F-%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E4%B8%8E%E8%83%BD%E5%8A%9B"><span class="toc-list-text">⚙️ 主要功能与能力</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%9B%A0%EF%B8%8F-%E4%B8%BB%E8%A6%81%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-list-text">🛠️ 主要应用场景</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%93%9D-%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95%E4%B8%8E%E7%A4%BA%E4%BE%8B"><span class="toc-list-text">📝 基本用法与示例</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%93%8C-%E8%A1%A5%E5%85%85%E8%AF%B4%E6%98%8E"><span class="toc-list-text">📌 补充说明</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E6%9F%A5%E8%AF%A2%E5%AD%90%E5%9F%9F%E5%90%8D%E7%A4%BA%E4%BE%8B"><span class="toc-list-text">查询子域名示例</span></a></li></ol>
+      </nav>
+    </aside>
+    
+  </div>
+
+  <footer class="post__foot">
+    
+    <div class="post__tags">
+      <span class="post__tags-label" aria-hidden="true">tags:</span>
+      
+      <a class="tag" href="/tags/FOFA/">#FOFA</a>
+      
+      <a class="tag" href="/tags/%E7%BD%91%E7%BB%9C%E7%A9%BA%E9%97%B4%E6%B5%8B%E7%BB%98/">#网络空间测绘</a>
+      
+      <a class="tag" href="/tags/%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86/">#信息收集</a>
+      
+    </div>
+    
+
+    
+  </footer>
+</article>
+
+  </main>
+
+  
+<footer class="site-footer">
+  <div class="shell">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <p class="footer__prompt"><span class="ps1" aria-hidden="true">root@doing:~$</span> echo $SIGNATURE</p>
+        <p class="footer__signature">There is no place like 127.0.0.1.</p>
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__label">// ELSEWHERE</p>
+        <a class="footer__link" href="/archives/">archives</a>
+        <a class="footer__link" href="/tags/">tags</a>
+        
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__label">// SYSTEM</p>
+        <p class="footer__meta"><span>stack</span> hexo + ejs</p>
+        <p class="footer__meta"><span>uptime</span> since 2026</p>
+        <button class="matrix-toggle" id="matrix-toggle" type="button" aria-pressed="true">MATRIX: ON</button>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <span>© 2026 <span class="footer__name">doing</span> — all packets encrypted</span>
+      <span class="footer__eof" aria-hidden="true">[ EOF ]</span>
+      <a class="footer__top-link" href="#top">cd ~ <span aria-hidden="true">↑</span></a>
+    </div>
+  </div>
+</footer>
+
+
+  <button class="to-top" id="to-top" type="button" aria-label="返回顶部" title="回到顶部">↑</button>
+
+  
+<script src="/js/matrix.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+</body>
+</html>
