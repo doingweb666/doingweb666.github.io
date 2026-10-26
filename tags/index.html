@@ -85,22 +85,11 @@
   <header class="page-head">
     <p class="eyebrow">// TAG_DATABASE</p>
     <h1 class="page-title glitch" data-text="./tags">./tags</h1>
-    <p class="page-sub">2 tags indexed <span class="muted">// select a tag to filter transmissions</span></p>
+    <p class="page-sub">0 tags indexed <span class="muted">// select a tag to filter transmissions</span></p>
   </header>
 
   
-  <p class="tag-note"><span class="ps1" aria-hidden="true">$</span> find ./posts -type f | xargs grep -h "tags:" | sort | uniq -c</p>
-  <div class="tag-cloud">
-    
-    <a class="tag-cloud__item" href="/tags/blog/">
-      <span class="tag-cloud__hash" aria-hidden="true">#</span><span class="tag-cloud__name">blog</span><span class="tag-cloud__count">1</span>
-    </a>
-    
-    <a class="tag-cloud__item" href="/tags/hexo/">
-      <span class="tag-cloud__hash" aria-hidden="true">#</span><span class="tag-cloud__name">hexo</span><span class="tag-cloud__count">1</span>
-    </a>
-    
-  </div>
+  <p class="empty"><span class="ps1">$</span> grep -r "#" ./posts — <span class="muted">no tags found.</span></p>
   
 </section>
 
