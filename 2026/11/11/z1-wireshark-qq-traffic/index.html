@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>【课后作业】用 Wireshark 拆解 QQ 流量：UDP 还是 TCP、加不加密、文件能否还原 // doing</title>
+<meta name="description" content="5 分钟、22499 个包，用 Wireshark 回答作业的三个问题，顺手发现 NTQQ 早就不是教材里那个走 UDP 8000 的协议了。">
+<meta name="author" content="doing">
+<meta name="theme-color" content="#04070f">
+<meta name="color-scheme" content="dark">
+<meta name="keywords" content="网络安全, 渗透测试, CTF, doing">
+<meta name="generator" content="Hexo">
+<link rel="canonical" href="https://doingweb666.github.io/2026/11/11/z1-wireshark-qq-traffic/">
+<link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【课后作业】用 Wireshark 拆解 QQ 流量：UDP 还是 TCP、加不加密、文件能否还原 // doing">
+<meta property="og:description" content="5 分钟、22499 个包，用 Wireshark 回答作业的三个问题，顺手发现 NTQQ 早就不是教材里那个走 UDP 8000 的协议了。">
+<meta property="og:url" content="https://doingweb666.github.io/2026/11/11/z1-wireshark-qq-traffic/">
+<meta property="og:site_name" content="doing">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【课后作业】用 Wireshark 拆解 QQ 流量：UDP 还是 TCP、加不加密、文件能否还原 // doing">
+<meta name="twitter:description" content="5 分钟、22499 个包，用 Wireshark 回答作业的三个问题，顺手发现 NTQQ 早就不是教材里那个走 UDP 8000 的协议了。">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script>document.documentElement.className += ' js';</script>
+
+</head>
+<body class="post-page">
+  <canvas id="matrix" class="matrix" aria-hidden="true"
+    data-enabled="true"
+    data-opacity="0.2"
+    data-font-size="16"
+    data-speed="1"></canvas>
+
+  <div class="crt" aria-hidden="true">
+    <div class="crt__scanlines"></div>
+    <div class="crt__vignette"></div>
+  </div>
+
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  
+<header class="site-header" id="top">
+  <div class="shell header__inner">
+    <a class="brand" href="/" aria-label="doing 首页">
+      <span class="brand__prompt" aria-hidden="true">root@doing:~#</span>
+      <span class="brand__name">doing</span>
+      <span class="brand__caret" aria-hidden="true"></span>
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="打开导航菜单">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      
+        <a class="site-nav__link"
+           href="/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>home
+        </a>
+      
+        <a class="site-nav__link"
+           href="/archives/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>archives
+        </a>
+      
+        <a class="site-nav__link"
+           href="/tags/"
+           >
+          <span class="site-nav__marker" aria-hidden="true">./</span>tags
+        </a>
+      
+    </nav>
+  </div>
+</header>
+
+
+  <main class="main" id="main">
+    
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<article class="post">
+  <header class="post__head">
+    <nav class="crumbs" aria-label="面包屑">
+      <a href="/">~</a>
+      <span class="crumbs__sep" aria-hidden="true">/</span>
+      <a href="/archives/">posts</a>
+      <span class="crumbs__sep" aria-hidden="true">/</span>
+      <span class="crumbs__here">z1-wireshark-qq-traffic</span>
+    </nav>
+
+    <h1 class="post__title glitch" data-text="【课后作业】用 Wireshark 拆解 QQ 流量：UDP 还是 TCP、加不加密、文件能否还原">【课后作业】用 Wireshark 拆解 QQ 流量：UDP 还是 TCP、加不加密、文件能否还原</h1>
+
+    <div class="post__meta">
+      <span class="post__meta-item"><span class="post__meta-key">date</span> <time datetime="2026-11-11T12:00:00.000Z">2026-11-11</time></span>
+      <span class="meta-dot" aria-hidden="true">•</span>
+      <span class="post__meta-item"><span class="post__meta-key">read</span> 11 min</span>
+      
+      <span class="meta-dot" aria-hidden="true">•</span>
+      <span class="post__meta-item"><span class="post__meta-key">dir</span> <a href="/categories/%E5%AE%89%E5%85%A8%E5%B7%A5%E5%85%B7/">安全工具</a></span>
+      
+      
+      <span class="post__meta-tags">
+        
+        <a class="tag" href="/tags/Wireshark/">#Wireshark</a>
+        
+        <a class="tag" href="/tags/%E6%B5%81%E9%87%8F%E5%88%86%E6%9E%90/">#流量分析</a>
+        
+        <a class="tag" href="/tags/QQ/">#QQ</a>
+        
+        <a class="tag" href="/tags/%E5%8D%8F%E8%AE%AE%E5%88%86%E6%9E%90/">#协议分析</a>
+        
+      </span>
+      
+    </div>
+  </header>
+
+  <div class="post__layout has-toc">
+    <div class="file">
+      <div class="file__bar">
+        <span class="file__name"><span class="file__path" aria-hidden="true">~/posts/</span>z1-wireshark-qq-traffic.md</span>
+        <span class="file__mode" title="只读文件">READ-ONLY</span>
+      </div>
+      <div class="file__body prose" id="post-content">
+        <p>教材上讲 QQ 的传输层，标准答案是”UDP 8000，自定义协议”。这次抓了 5 分钟真实流量，22499 个包摆在那里，结论和教材差了整整一代 —— 现在装的 NTQQ 是 Electron 架构，主通道走 <strong>TCP 443 + TLS 1.3</strong>，另有一条 <strong>QUIC over UDP</strong> 做低延迟。</p>
+<p>这篇文章按作业的三个问题走一遍：是 UDP 还是 TCP、是加密还是明文、能不能从流量里还原出明文文件。</p>
+<h2 id="⚙️-实验环境"><a href="#⚙️-实验环境" class="headerlink" title="⚙️ 实验环境"></a>⚙️ 实验环境</h2><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>抓包机</td>
+<td>Windows 11 + Wireshark 4.x（<code>tshark</code> 与图形界面同一套解析器）</td>
+</tr>
+<tr>
+<td>客户端</td>
+<td>NTQQ（Electron 版，非老版 OICQ 协议）</td>
+</tr>
+<tr>
+<td>对端</td>
+<td>手机 QQ，与 PC 连同一个 WiFi</td>
+</tr>
+<tr>
+<td>抓包网卡</td>
+<td>WLAN</td>
+</tr>
+<tr>
+<td>抓包时长</td>
+<td>300 秒，共 22499 帧 &#x2F; 7.42 MB</td>
+</tr>
+</tbody></table>
+<p>抓包期间的操作：给「文件传输助手」发文字消息、发一张图片、传一个小文件，再用手机发一张图给 PC。</p>
+<h2 id="一、开抓之前，先避开三个坑"><a href="#一、开抓之前，先避开三个坑" class="headerlink" title="一、开抓之前，先避开三个坑"></a>一、开抓之前，先避开三个坑</h2><p><strong>坑 1：网卡选错，列表全空。</strong></p>
+<p>Wireshark 的接口列表里塞了一堆 <code>本地连接* 10</code>、<code>本地连接* 9</code>、<code>蓝牙网络连接</code> —— 这些是系统创建的虚拟适配器，上面没有流量。选错了就是一片空白，让人误以为 Wireshark 坏了。</p>
+<p>先用命令行确认编号再选：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tshark -D</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">5. \Device\NPF_&#123;D54BADB8-...&#125; (WLAN)</span><br></pre></td></tr></table></figure>
+
+<p><strong>坑 2：显示过滤器会污染统计。</strong></p>
+<p><code>统计 → 会话</code>、<code>协议分级</code> 默认只统计”当前显示的分组”。如果过滤栏里还挂着 <code>ip.addr == 120.233.38.151</code>，打开会话统计只会看到 1 条会话，而不是全部 115 个对端。做统计前先点过滤栏右边的 <strong>×</strong> 清空。</p>
+<p><strong>坑 3：<code>contains</code> 只在当前显示范围内搜。</strong></p>
+<p>用 <code>tcp contains ff:d8:ff</code> 找文件头时，如果过滤器里还留着别的内容，等于在一个子集里搜，0 结果毫无意义。</p>
+<h2 id="二、整体协议构成：TCP-占九成"><a href="#二、整体协议构成：TCP-占九成" class="headerlink" title="二、整体协议构成：TCP 占九成"></a>二、整体协议构成：TCP 占九成</h2><p><code>统计 → 协议分级</code>：</p>
+<p><img src="/images/df2038340ffc8566154393c7cb21d1b1.png" alt="Wireshark 协议分级统计"></p>
+<table>
+<thead>
+<tr>
+<th>协议</th>
+<th>分组数</th>
+<th>占比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>总计</td>
+<td>22499</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>IPv4</td>
+<td>22238</td>
+<td>98.8%</td>
+</tr>
+<tr>
+<td>└ TCP</td>
+<td><strong>20333</strong></td>
+<td><strong>90.4%</strong></td>
+</tr>
+<tr>
+<td>└ TLS</td>
+<td>7146</td>
+<td>31.8%</td>
+</tr>
+<tr>
+<td>└ HTTP</td>
+<td>83</td>
+<td>0.4%</td>
+</tr>
+<tr>
+<td>└ UDP</td>
+<td><strong>1861</strong></td>
+<td><strong>8.3%</strong></td>
+</tr>
+<tr>
+<td>└ DNS</td>
+<td>578</td>
+<td>2.6%</td>
+</tr>
+<tr>
+<td>└ gQUIC</td>
+<td>843</td>
+<td>3.7%</td>
+</tr>
+<tr>
+<td>└ QUIC IETF</td>
+<td>320</td>
+<td>1.4%</td>
+</tr>
+<tr>
+<td>IPv6</td>
+<td>215</td>
+<td>1.0%</td>
+</tr>
+</tbody></table>
+<p>5 分钟里平均 75 包&#x2F;秒，真正承载业务数据的几乎全在 TCP 上，而 TCP 里 <strong>每三个包就有一个是 TLS</strong>。</p>
+<h3 id="UDP-那-8-3-里，一半是误判"><a href="#UDP-那-8-3-里，一半是误判" class="headerlink" title="UDP 那 8.3% 里，一半是误判"></a>UDP 那 8.3% 里，一半是误判</h3><p>这里有个必须点出来的细节：<code>gQUIC</code> 那 843 个包，看目标端口就知道不对劲 ——</p>
+<table>
+<thead>
+<tr>
+<th>目的地址</th>
+<th>目的端口</th>
+<th>帧数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>106.55.117.183</td>
+<td>443</td>
+<td>166</td>
+</tr>
+<tr>
+<td><strong>10.33.104.90</strong></td>
+<td>49228</td>
+<td>154</td>
+</tr>
+<tr>
+<td><strong>10.33.104.90</strong></td>
+<td>65425</td>
+<td>121</td>
+</tr>
+</tbody></table>
+<p>后两行的目的地址是本机自己，端口是 4~6 万的随机高位端口 —— 这是局域网内的杂项 UDP 广播（发现协议、投屏、P2P 探测之类），被 Wireshark 的启发式解析器<strong>猜</strong>成了 gQUIC。真正从本机发往腾讯的 QUIC 只有到 <code>106.55.117.183:443</code> 和 <code>116.162.45.56:443</code> 的两条。</p>
+<blockquote>
+<p>启发式解析器的结论要看端口和方向，不能只看协议名列。</p>
+</blockquote>
+<h2 id="三、问题一：UDP-还是-TCP？"><a href="#三、问题一：UDP-还是-TCP？" class="headerlink" title="三、问题一：UDP 还是 TCP？"></a>三、问题一：UDP 还是 TCP？</h2><p><strong>两个都在用，但主通道是 TCP。</strong></p>
+<table>
+<thead>
+<tr>
+<th>通道</th>
+<th>协议</th>
+<th>端口</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>主通道</td>
+<td>TCP + TLS 1.3</td>
+<td>443</td>
+<td>登录、消息收发、信令、配置下发</td>
+</tr>
+<tr>
+<td>实时通道</td>
+<td>QUIC（UDP）</td>
+<td>443</td>
+<td>低延迟数据传输</td>
+</tr>
+</tbody></table>
+<p>按端口统计，<code>443</code> 承载了 <strong>19668 帧，占全部流量的 87%</strong> —— 这个比例基本可以说明一切：QQ 已经把绝大多数业务搬到 HTTPS 上了。</p>
+<h3 id="和教材的差异在哪"><a href="#和教材的差异在哪" class="headerlink" title="和教材的差异在哪"></a>和教材的差异在哪</h3><table>
+<thead>
+<tr>
+<th></th>
+<th>老 OICQ（教材）</th>
+<th>NTQQ（实测）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>传输层</td>
+<td>UDP 8000</td>
+<td>TCP 443（+ QUIC&#x2F;UDP 443）</td>
+</tr>
+<tr>
+<td>协议</td>
+<td>私有二进制协议</td>
+<td>HTTP&#x2F;2 + TLS 1.3</td>
+</tr>
+<tr>
+<td>架构</td>
+<td>原生客户端</td>
+<td>Electron</td>
+</tr>
+<tr>
+<td>加密</td>
+<td>应用层私有加密</td>
+<td>TLS 1.3 + 应用层私有加密</td>
+</tr>
+</tbody></table>
+<p>教材没有写错，只是写的是 2005 年的 QQ。这本身就是流量分析的一个提醒：<strong>协议文档永远滞后于客户端</strong>，手上的流量才是最新的。</p>
+<h2 id="四、把-QQ-的连接单独拎出来"><a href="#四、把-QQ-的连接单独拎出来" class="headerlink" title="四、把 QQ 的连接单独拎出来"></a>四、把 QQ 的连接单独拎出来</h2><p>过滤 <code>ip.addr == 120.233.38.151</code>（抓包期间 QQ 的主连接之一），剩 514 个包：</p>
+<p><img src="/images/658a6affc02bc5b98b9f7f15478470f1.png" alt="过滤 QQ 主连接"></p>
+<p>一眼能看出来的：</p>
+<ul>
+<li>源端口 <code>61142</code> → 目的端口 <code>443</code>，固定一条长连接</li>
+<li>大量 <code>[TCP Keep-Alive]</code> 和 <code>[TCP Keep-Alive ACK]</code>，心跳间隔稳定在 60 秒左右</li>
+<li>中间夹着 <code>TLSv1.3 Application Data</code> —— 真正的业务数据</li>
+</ul>
+<p>这条连接从 0.16 秒一直活到 299 秒（会话统计里持续 <strong>254 秒</strong>），5 分钟的抓包窗口里它始终没断。移动端 IM 靠的就是这种长连接 + 心跳，不然消息推送就得轮询。</p>
+<p>清空过滤器再看全局，5 分钟里一共建立了 <strong>286 条 TCP 会话</strong>，其中 <strong>241 条（84%）的目的端口是 443</strong>：</p>
+<p><img src="/images/497617bd3ee77da62fff983a0102120e.png" alt="TCP 会话统计"></p>
+<p>大部分会话的字节数在几 kB 到几十 kB，属于短连接 —— 建连、握手、取一次配置或拉一张头像就关掉。真正长期的只有几条：主连接、心跳、以及媒体下载。这种”少数长连接 + 大量短连接”的形态，是典型的长连接 + CDN 混合架构。</p>
+<h2 id="五、问题二：加密还是明文？"><a href="#五、问题二：加密还是明文？" class="headerlink" title="五、问题二：加密还是明文？"></a>五、问题二：加密还是明文？</h2><p>选中任意一个包，<code>右键 → 追踪 → TCP 流</code>：</p>
+<p><img src="/images/0ce66148f427d30c8a54d69d314ab3c7.png" alt="Follow TCP Stream 全是密文"></p>
+<p>整段 8909 字节，149 个包，显示的是可打印字符和 <code>\x</code> 转义混在一起的乱码 —— 没有任何可读的文本、JSON 或字段名。</p>
+<p>握手侧的统计更直接：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TLS ClientHello</td>
+<td>157</td>
+</tr>
+<tr>
+<td>其中首选 TLS 1.3（<code>0x0304</code>）</td>
+<td><strong>130（82.8%）</strong></td>
+</tr>
+<tr>
+<td>QUIC 连接（TLS 1.3 强制）</td>
+<td>320 个包</td>
+</tr>
+</tbody></table>
+<p><strong>结论：全程加密，而且是 TLS 1.3。</strong> 而且这只是第一层 —— QQ 在 TLS 之上还有自己的应用层加密，登录后协商密钥，消息体再加密一次。就算能在客户端里把 TLS 解掉，看到的仍然是密文。</p>
+<p>TLS 1.3 相比 1.2 还砍掉了 RSA 密钥交换和静态 DH，只留 (EC)DHE 前向保密。这意味着<strong>抓完包再拿到服务器私钥也没用</strong>，解不开历史流量。</p>
+<h2 id="六、问题三：能不能还原出明文文件？"><a href="#六、问题三：能不能还原出明文文件？" class="headerlink" title="六、问题三：能不能还原出明文文件？"></a>六、问题三：能不能还原出明文文件？</h2><p>作业提示了两条线索：一是不同文件有各自的头部特征码，二是在线传输方式。先用特征码试。</p>
+<p><code>编辑 → 查找分组</code>，选「十六进制值」，输入 <code>ffd8ff</code>（JPEG 的文件头）：</p>
+<p><img src="/images/e4c4a02f0f343538482e4712c53f1ded.png" alt="查找 JPEG 文件头，结果 0 个分组"></p>
+<p><strong>0 个分组。</strong> 换成其他格式再试一遍：</p>
+<table>
+<thead>
+<tr>
+<th>特征码</th>
+<th>对应格式</th>
+<th>命中</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ff d8 ff</code></td>
+<td>JPEG</td>
+<td><strong>0</strong></td>
+</tr>
+<tr>
+<td><code>89 50 4e 47</code></td>
+<td>PNG</td>
+<td><strong>0</strong></td>
+</tr>
+<tr>
+<td><code>50 4b 03 04</code></td>
+<td>ZIP</td>
+<td>5（来自 <code>113.16.200.76:80</code>，是 Windows 网络连通性检测，<strong>不是 QQ</strong>）</td>
+</tr>
+</tbody></table>
+<h3 id="搜不到，才是正确答案"><a href="#搜不到，才是正确答案" class="headerlink" title="搜不到，才是正确答案"></a>搜不到，才是正确答案</h3><p>QQ 的图片和文件不走点对点直传，而是先上传到腾讯云 COS，再由 CDN 分发给接收方，全程 HTTPS。文件的字节流在 TLS 记录里，抓包能看到的只有 <code>Application Data</code>。</p>
+<p>会话统计里能反过来印证这一点：</p>
+<table>
+<thead>
+<tr>
+<th>会话</th>
+<th>上行</th>
+<th>下行</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>183.195.235.147:443</code></td>
+<td><strong>753 kB</strong></td>
+<td>5.8 kB</td>
+<td>几乎纯上行 —— 对应”发送图片&#x2F;文件”</td>
+</tr>
+<tr>
+<td><code>111.29.14.203:443</code></td>
+<td>469 kB</td>
+<td>899 kB</td>
+<td>上下都有 —— 对应”接收图片&#x2F;缩略图”</td>
+</tr>
+</tbody></table>
+<p>那条 753 kB 的上行会话，方向、大小、时间点都对得上”我把一张图发出去了”，但<strong>内容一个字节都看不到</strong>。这正是作业里说的”在线传输方式”带来的结果：<strong>能证明传了多大、传给了谁（服务器），证明不了传了什么</strong>。</p>
+<h2 id="七、PC-和手机之间，为什么不直连"><a href="#七、PC-和手机之间，为什么不直连" class="headerlink" title="七、PC 和手机之间，为什么不直连"></a>七、PC 和手机之间，为什么不直连</h2><p>我把抓包里所有对端地址去重数了一遍：<strong>115 个，全部是公网地址，没有一条连接的对端是私网 IP</strong>。</p>
+<p>也就是说 PC 与手机之间不存在 P2P 打洞，消息、图片、文件全部由腾讯服务器中转。这也解释了为什么抓包里找不到手机的内网地址 —— 它压根没在这条链路上出现过。</p>
+<h2 id="八、加密保护不了的东西：SNI"><a href="#八、加密保护不了的东西：SNI" class="headerlink" title="八、加密保护不了的东西：SNI"></a>八、加密保护不了的东西：SNI</h2><p>即使全程 TLS 1.3，握手第一步的 <code>ClientHello</code> 里，<strong>SNI 字段仍是明文</strong>（除非服务端和客户端都支持 ECH）。从抓包里能直接读出 QQ 连接的后台服务：</p>
+<table>
+<thead>
+<tr>
+<th>SNI</th>
+<th>出现次数</th>
+<th>用途推测</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>galileotelemetry.tencent.com</code></td>
+<td>37</td>
+<td>遥测上报</td>
+</tr>
+<tr>
+<td><code>work.medialab.qq.com</code></td>
+<td>7</td>
+<td>媒体（图片&#x2F;视频）</td>
+</tr>
+<tr>
+<td><code>otheve.beacon.qq.com</code></td>
+<td>4</td>
+<td>信标</td>
+</tr>
+<tr>
+<td><code>rmonitor.qq.com</code></td>
+<td>2</td>
+<td>性能监控</td>
+</tr>
+</tbody></table>
+<p>更进一步，同一份抓包里还混着这台机器上<strong>其他应用</strong>的 SNI —— 浏览器、会议、办公、更新服务，全都在列。加密保护的是内容，保护不了”你在连谁”。</p>
+<p>这就是流量分析的价值所在：内容看不见，但<strong>行为画像</strong>依然成立。应急响应里拿到一份 pcap，最先看的往往不是载荷，而是”这台机器在跟哪些域名通信”。</p>
+<h2 id="九、三问三答"><a href="#九、三问三答" class="headerlink" title="九、三问三答"></a>九、三问三答</h2><table>
+<thead>
+<tr>
+<th>作业问题</th>
+<th>结论</th>
+<th>关键证据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>UDP or TCP？</td>
+<td><strong>以 TCP 为主</strong>（90.4%），辅以 QUIC&#x2F;UDP 443</td>
+<td>协议分级统计；443 端口占 87%</td>
+</tr>
+<tr>
+<td>加密 or 明文？</td>
+<td><strong>全程加密</strong>，TLS 1.3 为主</td>
+<td>157 个 ClientHello &#x2F; 130 个首选 1.3；TCP 流全是密文</td>
+</tr>
+<tr>
+<td>能否还原明文文件？</td>
+<td><strong>不能</strong></td>
+<td>搜 <code>ffd8ff</code>、<code>89504e47</code> 均 0 命中；文件走 COS + HTTPS</td>
+</tr>
+</tbody></table>
+<h2 id="十、隐私处理"><a href="#十、隐私处理" class="headerlink" title="十、隐私处理"></a>十、隐私处理</h2><p>作业要求”注意保护个人隐私信息”，这篇里做了这些处理：</p>
+<ul>
+<li>本机地址写作 <code>10.33.104.90</code>（内网私有地址，无法定位）</li>
+<li>主机名、用户名、QQ 号、公网出口 IP 均未出现在截图与正文中</li>
+<li>抓包中其他应用的域名只做了举例，不展开完整清单</li>
+</ul>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>三个问题里，最有意思的不是答案，而是<strong>答案为什么和预期不一样</strong>：</p>
+<ol>
+<li>教材说 UDP，实测是 TCP —— 说明协议分析不能只背结论</li>
+<li>全加密，但 SNI 明牌 —— 说明”加密”从来不等于”不可分析”</li>
+<li>文件头搜不到，本身就是一条结论 —— 说明搜不到结果时，要先判断是”没有”还是”被藏起来了”</li>
+</ol>
+<p>最后补一句工具层面的教训：Wireshark 的协议分级、会话统计都受显示过滤器影响，<code>contains</code> 也只在当前显示范围内生效。做统计之前先清过滤器，否则得到的是子集的统计，还自以为看到了全部。</p>
+
+      </div>
+    </div>
+
+    
+    <aside class="toc" aria-label="文章目录">
+      <p class="toc__title">// INDEX</p>
+      <nav class="toc__nav">
+        <ol class="toc-list"><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E2%9A%99%EF%B8%8F-%E5%AE%9E%E9%AA%8C%E7%8E%AF%E5%A2%83"><span class="toc-list-text">⚙️ 实验环境</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E4%B8%80%E3%80%81%E5%BC%80%E6%8A%93%E4%B9%8B%E5%89%8D%EF%BC%8C%E5%85%88%E9%81%BF%E5%BC%80%E4%B8%89%E4%B8%AA%E5%9D%91"><span class="toc-list-text">一、开抓之前，先避开三个坑</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E4%BA%8C%E3%80%81%E6%95%B4%E4%BD%93%E5%8D%8F%E8%AE%AE%E6%9E%84%E6%88%90%EF%BC%9ATCP-%E5%8D%A0%E4%B9%9D%E6%88%90"><span class="toc-list-text">二、整体协议构成：TCP 占九成</span></a><ol class="toc-list-child"><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#UDP-%E9%82%A3-8-3-%E9%87%8C%EF%BC%8C%E4%B8%80%E5%8D%8A%E6%98%AF%E8%AF%AF%E5%88%A4"><span class="toc-list-text">UDP 那 8.3% 里，一半是误判</span></a></li></ol></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E4%B8%89%E3%80%81%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9AUDP-%E8%BF%98%E6%98%AF-TCP%EF%BC%9F"><span class="toc-list-text">三、问题一：UDP 还是 TCP？</span></a><ol class="toc-list-child"><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#%E5%92%8C%E6%95%99%E6%9D%90%E7%9A%84%E5%B7%AE%E5%BC%82%E5%9C%A8%E5%93%AA"><span class="toc-list-text">和教材的差异在哪</span></a></li></ol></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E5%9B%9B%E3%80%81%E6%8A%8A-QQ-%E7%9A%84%E8%BF%9E%E6%8E%A5%E5%8D%95%E7%8B%AC%E6%8B%8E%E5%87%BA%E6%9D%A5"><span class="toc-list-text">四、把 QQ 的连接单独拎出来</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E4%BA%94%E3%80%81%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9A%E5%8A%A0%E5%AF%86%E8%BF%98%E6%98%AF%E6%98%8E%E6%96%87%EF%BC%9F"><span class="toc-list-text">五、问题二：加密还是明文？</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E5%85%AD%E3%80%81%E9%97%AE%E9%A2%98%E4%B8%89%EF%BC%9A%E8%83%BD%E4%B8%8D%E8%83%BD%E8%BF%98%E5%8E%9F%E5%87%BA%E6%98%8E%E6%96%87%E6%96%87%E4%BB%B6%EF%BC%9F"><span class="toc-list-text">六、问题三：能不能还原出明文文件？</span></a><ol class="toc-list-child"><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#%E6%90%9C%E4%B8%8D%E5%88%B0%EF%BC%8C%E6%89%8D%E6%98%AF%E6%AD%A3%E7%A1%AE%E7%AD%94%E6%A1%88"><span class="toc-list-text">搜不到，才是正确答案</span></a></li></ol></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E4%B8%83%E3%80%81PC-%E5%92%8C%E6%89%8B%E6%9C%BA%E4%B9%8B%E9%97%B4%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E7%9B%B4%E8%BF%9E"><span class="toc-list-text">七、PC 和手机之间，为什么不直连</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E5%85%AB%E3%80%81%E5%8A%A0%E5%AF%86%E4%BF%9D%E6%8A%A4%E4%B8%8D%E4%BA%86%E7%9A%84%E4%B8%9C%E8%A5%BF%EF%BC%9ASNI"><span class="toc-list-text">八、加密保护不了的东西：SNI</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E4%B9%9D%E3%80%81%E4%B8%89%E9%97%AE%E4%B8%89%E7%AD%94"><span class="toc-list-text">九、三问三答</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E5%8D%81%E3%80%81%E9%9A%90%E7%A7%81%E5%A4%84%E7%90%86"><span class="toc-list-text">十、隐私处理</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E5%90%8E%E8%AE%B0"><span class="toc-list-text">后记</span></a></li></ol>
+      </nav>
+    </aside>
+    
+  </div>
+
+  <footer class="post__foot">
+    
+    <div class="post__tags">
+      <span class="post__tags-label" aria-hidden="true">tags:</span>
+      
+      <a class="tag" href="/tags/Wireshark/">#Wireshark</a>
+      
+      <a class="tag" href="/tags/%E6%B5%81%E9%87%8F%E5%88%86%E6%9E%90/">#流量分析</a>
+      
+      <a class="tag" href="/tags/QQ/">#QQ</a>
+      
+      <a class="tag" href="/tags/%E5%8D%8F%E8%AE%AE%E5%88%86%E6%9E%90/">#协议分析</a>
+      
+    </div>
+    
+
+    
+    <nav class="post-nav" aria-label="上一篇 / 下一篇">
+      
+      <a class="post-nav__item post-nav__item--prev" href="/2026/11/04/msfvenom-meterpreter/">
+        <span class="post-nav__label"><span aria-hidden="true">←</span> PREV</span>
+        <span class="post-nav__title">【课后作业】msfvenom 生成被控端与 Meterpreter 远程控制</span>
+      </a>
+      
+      
+      <span class="post-nav__item is-empty post-nav__item--next"><span class="post-nav__label">// EOF_NEXT</span></span>
+      
+    </nav>
+    
+  </footer>
+</article>
+
+  </main>
+
+  
+<footer class="site-footer">
+  <div class="shell">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <p class="footer__prompt"><span class="ps1" aria-hidden="true">root@doing:~$</span> echo $SIGNATURE</p>
+        <p class="footer__signature">There is no place like 127.0.0.1.</p>
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__label">// ELSEWHERE</p>
+        <a class="footer__link" href="/archives/">archives</a>
+        <a class="footer__link" href="/tags/">tags</a>
+        
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__label">// SYSTEM</p>
+        <p class="footer__meta"><span>stack</span> hexo + ejs</p>
+        <p class="footer__meta"><span>uptime</span> since 2026</p>
+        <button class="matrix-toggle" id="matrix-toggle" type="button" aria-pressed="true">MATRIX: ON</button>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <span>© 2026 <span class="footer__name">doing</span> — all packets encrypted</span>
+      <span class="footer__eof" aria-hidden="true">[ EOF ]</span>
+      <a class="footer__top-link" href="#top">cd ~ <span aria-hidden="true">↑</span></a>
+    </div>
+  </div>
+</footer>
+
+
+  <button class="to-top" id="to-top" type="button" aria-label="返回顶部" title="回到顶部">↑</button>
+
+  
+<script src="/js/matrix.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+</body>
+</html>
